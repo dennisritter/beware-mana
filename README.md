@@ -20,4 +20,4 @@ Whalecome may frend. I've heared ju want tu konribut? Follou sies ruls, plis:
 
 ## Project Mind map (concept & ideas)
 
-![](docs\mana_concept_1.jpg)
+![](docs/mana_concept_1.jpg)
