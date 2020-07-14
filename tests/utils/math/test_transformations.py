@@ -22,5 +22,10 @@ def test_norm_unit_vec():
 
 
 def test_norm_vec():
-    result = t.norm([3, 4, 0])
-    assert np.array_equal(result, np.array([0.6, 0.8, 0]))
+    result = t.norm(np.array([3, 4, 0]))
+    assert np.array_equal(result, np.array([0.6, 0.8, 0.0]))
+
+
+def test_norm_batch():
+    result = t.norm(np.array([[0, 0, 0], [1, 0, 0], [3, 4, 0]]))
+    assert np.array_equal(result, np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.6, 0.8, 0.0]]))
