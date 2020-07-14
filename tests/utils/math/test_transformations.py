@@ -74,3 +74,8 @@ def test_dot_batch(v1, v2, expected):
 def test_v3_to_v4_single(v, expected):
     result = len(t.v3_to_v4(v))
     assert result == pytest.approx(expected)
+
+
+@pytest.mark.parametrize('v, expected', [(np.array([[1, 1, 1], [1, 2, 3]]), 4)])
+def test_v3_to_v4_batch(v, expected):
+    assert t.v3_to_v4(v).shape[1] == expected
