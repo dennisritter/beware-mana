@@ -67,7 +67,7 @@ def v3_to_v4(v):
     Args:
         v (np.ndarray): A 3-D vector or an array of 3-D vectors.
     """
-    if type(v) != np.ndarray or type(v) != np.ndarray:
+    if type(v) != np.ndarray:
         raise ValueError('v must be of type numpy.ndarray')
     elif v.ndim > 2:
         raise ValueError('v must be either 1- or 2-dimensional (v.ndim == 1|2)')
@@ -76,3 +76,43 @@ def v3_to_v4(v):
         return np.append(v, 1)
     elif v.ndim == 2:
         return np.hstack((v, np.ones(len(v)).reshape((len(v), 1))))
+
+
+def rotation(axis: 'np.ndarray', alpha) -> 'np.ndarray':
+    # Source: https://stackoverflow.com/questions/6802577/rotation-of-3d-vector
+    """Returns a 3x3 numpy array that represents a rotation about the given axis for the given angle alpha (radians). 
+    
+    Args:
+        axis (np.ndarray): A 3-D (ndim=3) vector that describes the axis to rotate about.
+        alpha (float or np.ndarray): The angle to rotate for in radians.
+    """
+    if type(axis) != np.ndarray:
+        raise ValueError('axis must be of type numpy.ndarray')
+    elif axis.ndim > 2:
+        raise ValueError('v must be either 1- or 2-dimensional (v.ndim == 1|2)')
+    if type(alpha) != float and type(alpha) != np.ndarray:
+        raise ValueError('alpha must be of type float or numpy.ndarray')
+
+    if axis.ndim == 1 and type(alpha) == float:
+        axis = norm(axis)
+        a = np.cos(alpha / 2.0)
+        b, c, d = -axis * np.sin(alpha / 2.0)
+        aa, bb, cc, dd = a * a, b * b, c * c, d * d
+        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+        matrix = np.array([
+            [aa + bb - cc - dd, 2.0 * (bc + ad), 2.0 * (bd - ac)],
+            [2.0 * (bc - ad), aa + cc - bb - dd, 2.0 * (cd + ab)],
+            [2.0 * (bd + ac), 2.0 * (cd - ab), aa + dd - bb - cc],
+        ])  # yapf: disable
+        return matrix
+        # TODO: Add Batch mode
+
+
+def transformation(rotation: 'np.ndarray', translation: 'np.ndarray') -> 'np.ndarray':
+    """Returns a 4x4 transformation matrix including a rotation and a translation. 
+
+    Args:
+        rotation (np.ndarray): A 3x3 rotation matrix.
+        translation (np.ndarray): A 3-D translation vector.
+    """
+    pass

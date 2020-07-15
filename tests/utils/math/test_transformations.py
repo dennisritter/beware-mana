@@ -79,3 +79,12 @@ def test_v3_to_v4_single(v, expected):
 @pytest.mark.parametrize('v, expected', [(np.array([[1, 1, 1], [1, 2, 3]]), 4)])
 def test_v3_to_v4_batch(v, expected):
     assert t.v3_to_v4(v).shape[1] == expected
+
+
+@pytest.mark.parametrize(
+    'axis, alpha, expected',
+    [(np.array([1.0, 0.0, 0.0]), math.pi / 2,
+      np.array([[1.0, 0.0, 0.0], [0.0, np.cos(math.pi / 2), -np.sin(math.pi / 2)], [0.0, np.sin(math.pi / 2), np.cos(math.pi / 2)]]))])
+def test_rotation_single(axis, alpha, expected):
+    result = t.rotation(axis, alpha)
+    np.testing.assert_allclose(result, expected, atol=1e-07, verbose=True)
