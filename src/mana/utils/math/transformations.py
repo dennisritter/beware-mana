@@ -93,19 +93,31 @@ def rotation(axis: 'np.ndarray', alpha) -> 'np.ndarray':
     if type(alpha) != float and type(alpha) != np.ndarray:
         raise ValueError('alpha must be of type float or numpy.ndarray')
 
-    if axis.ndim == 1 and type(alpha) == float:
-        axis = norm(axis)
-        a = np.cos(alpha / 2.0)
-        b, c, d = -axis * np.sin(alpha / 2.0)
-        aa, bb, cc, dd = a * a, b * b, c * c, d * d
-        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        matrix = np.array([
-            [aa + bb - cc - dd, 2.0 * (bc + ad), 2.0 * (bd - ac)],
-            [2.0 * (bc - ad), aa + cc - bb - dd, 2.0 * (cd + ab)],
-            [2.0 * (bd + ac), 2.0 * (cd - ab), aa + dd - bb - cc],
-        ])  # yapf: disable
-        return matrix
-        # TODO: Add Batch mode
+    axis = norm(axis)
+    a = np.cos(alpha / 2)
+    if axis.ndim == 2 and type(alpha) == np.ndarray:
+        # Transpose matrix as we want b,c,d being the x,y,z component
+        # of each calculated vector from a list of axes
+        b, c, d = (-axis.transpose() * np.sin(alpha / 2.0))
+    else:
+        # Just assign x,y,z components to b,c,d if ndim == 1
+        b, c, d = (-axis * np.sin(alpha / 2.0))
+
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    matrix = np.array([
+        [aa + bb - cc - dd, 2.0 * (bc + ad), 2.0 * (bd - ac)],
+        [2.0 * (bc - ad), aa + cc - bb - dd, 2.0 * (cd + ab)],
+        [2.0 * (bd + ac), 2.0 * (cd - ab), aa + dd - bb - cc],
+    ])
+    # yapf: disable
+
+    if axis.ndim == 2 and type(alpha) == np.ndarray:
+        # Swap axes to get array of rotation-matrices instead of
+        # 'matrix of matrices that include the rows of each rotation'
+        matrix = matrix.swapaxes(1,2)
+        matrix = matrix.swapaxes(0,1)
+    return matrix
 
 
 def transformation(rotation: 'np.ndarray', translation: 'np.ndarray') -> 'np.ndarray':

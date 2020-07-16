@@ -88,3 +88,37 @@ def test_v3_to_v4_batch(v, expected):
 def test_rotation_single(axis, alpha, expected):
     result = t.rotation(axis, alpha)
     np.testing.assert_allclose(result, expected, atol=1e-07, verbose=True)
+
+
+@pytest.mark.parametrize(
+    'axis, alpha, expected',
+    [(np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]), np.array([math.pi / 2, math.pi / 4, math.pi / 8, math.pi / 10]),
+      np.array([[[1.0, 0.0, 0.0], [0.0, np.cos(math.pi / 2), -np.sin(math.pi / 2)], [0.0, np.sin(math.pi / 2), np.cos(math.pi / 2)]],
+                [[np.cos(math.pi / 4), 0.0, np.sin(math.pi / 4)], [0.0, 1.0, 0.0], [-np.sin(math.pi / 4), 0.0, np.cos(math.pi / 4)]],
+                [[np.cos(math.pi / 8), -np.sin(math.pi / 8), 0.0], [np.sin(math.pi / 8), np.cos(math.pi / 8), 0.0], [0.0, 0.0, 1.0]],
+                [[np.cos(math.pi / 10), -np.sin(math.pi / 10), 0.0], [np.sin(math.pi / 10), np.cos(math.pi / 10), 0.0], [0.0, 0.0, 1.0]]]))])
+def test_rotation_batch_mxn(axis, alpha, expected):
+    result = t.rotation(axis, alpha)
+    np.testing.assert_allclose(result, expected, atol=1e-07, verbose=True)
+
+
+@pytest.mark.parametrize(
+    'axis, alpha, expected',
+    [(np.array([[1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]), np.array([math.pi / 2, math.pi / 2, math.pi / 2]),
+      np.array([[[1.0, 0.0, 0.0], [0.0, np.cos(math.pi / 2), -np.sin(math.pi / 2)], [0.0, np.sin(math.pi / 2), np.cos(math.pi / 2)]],
+                [[1.0, 0.0, 0.0], [0.0, np.cos(math.pi / 2), -np.sin(math.pi / 2)], [0.0, np.sin(math.pi / 2), np.cos(math.pi / 2)]],
+                [[1.0, 0.0, 0.0], [0.0, np.cos(math.pi / 2), -np.sin(math.pi / 2)], [0.0, np.sin(math.pi / 2), np.cos(math.pi / 2)]]]))])
+def test_rotation_batch_nxn_debug(axis, alpha, expected):
+    result = t.rotation(axis, alpha)
+    np.testing.assert_allclose(result, expected, atol=1e-07, verbose=True)
+
+
+@pytest.mark.parametrize(
+    'axis, alpha, expected',
+    [(np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]), np.array([math.pi / 2, math.pi / 4, math.pi / 8]),
+      np.array([[[1.0, 0.0, 0.0], [0.0, np.cos(math.pi / 2), -np.sin(math.pi / 2)], [0.0, np.sin(math.pi / 2), np.cos(math.pi / 2)]],
+                [[np.cos(math.pi / 4), 0.0, np.sin(math.pi / 4)], [0.0, 1.0, 0.0], [-np.sin(math.pi / 4), 0.0, np.cos(math.pi / 4)]],
+                [[np.cos(math.pi / 8), -np.sin(math.pi / 8), 0.0], [np.sin(math.pi / 8), np.cos(math.pi / 8), 0.0], [0.0, 0.0, 1.0]]]))])
+def test_rotation_batch_nxn(axis, alpha, expected):
+    result = t.rotation(axis, alpha)
+    np.testing.assert_allclose(result, expected, atol=1e-07, verbose=True)
