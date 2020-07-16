@@ -80,7 +80,8 @@ def v3_to_v4(v):
 
 def rotation(axis: 'np.ndarray', alpha) -> 'np.ndarray':
     # Source: https://stackoverflow.com/questions/6802577/rotation-of-3d-vector
-    """Returns a 3x3 numpy array that represents a rotation about the given axis for the given angle alpha (radians). 
+    """Returns a 3x3 numpy array that represents a rotation about the given axis for the given angle alpha (radians)
+        or Returns an array of rotations if axis and alpha are arrays of axes/angles.
     
     Args:
         axis (np.ndarray): A 3-D (ndim=3) vector that describes the axis to rotate about.
