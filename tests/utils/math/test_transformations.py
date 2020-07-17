@@ -122,3 +122,24 @@ def test_rotation_batch_nxn_debug(axis, alpha, expected):
 def test_rotation_batch_nxn(axis, alpha, expected):
     result = t.rotation(axis, alpha)
     np.testing.assert_allclose(result, expected, atol=1e-07, verbose=True)
+
+
+@pytest.mark.parametrize('rotation, translation, expected', [
+    (np.array([[1.0, 0.0, 0.0], [0.0, np.cos(math.pi / 2), -np.sin(math.pi / 2)], [0.0, np.sin(math.pi / 2), np.cos(math.pi / 2)]]), np.array([1.0, 2.0, 3.0]),
+     np.array([[1.0, 0.0, 0.0, 1.0], [0.0, np.cos(math.pi / 2), -np.sin(math.pi / 2), 2.0], [0.0, np.sin(math.pi / 2),
+                                                                                             np.cos(math.pi / 2), 3.0], [0.0, 0.0, 0.0, 1.0]])),
+    (np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), np.array([0, 0, 0]), np.array([[1, 2, 3, 0], [4, 5, 6, 0], [7, 8, 9, 0], [0, 0, 0, 1]])),
+    (np.array([[11, 22, 33], [44, 55, 66], [77, 88, 99]]), np.array([6, 15, 24]), np.array([[11, 22, 33, 6], [44, 55, 66, 15], [77, 88, 99, 24], [0, 0, 0, 1]]))
+])
+def test_transformation_single(rotation, translation, expected):
+    result = t.transformation(rotation, translation)
+    np.testing.assert_array_equal(result, expected, verbose=True)
+
+
+@pytest.mark.parametrize(
+    'rotation, translation, expected',
+    [(np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[11, 22, 33], [44, 55, 66], [77, 88, 99]]]), np.array([[0, 0, 0], [6, 15, 24]]),
+      np.array([[[1, 2, 3, 0], [4, 5, 6, 0], [7, 8, 9, 0], [0, 0, 0, 1]], [[11, 22, 33, 6], [44, 55, 66, 15], [77, 88, 99, 24], [0, 0, 0, 1]]]))])
+def test_transformation_batch(rotation, translation, expected):
+    result = t.transformation(rotation, translation)
+    np.testing.assert_array_equal(result, expected, verbose=True)

@@ -11,7 +11,7 @@ def norm(v: 'np.ndarray') -> 'np.ndarray':
     """
     if type(v) != np.ndarray:
         raise ValueError('v must be of type numpy.ndarray')
-    elif v.ndim > 2:
+    if v.ndim > 2:
         raise ValueError('v must be either 1- or 2-dimensional')
 
     if v.ndim == 1:
@@ -35,7 +35,7 @@ def get_angle(v1, v2):
     """
     if type(v1) != np.ndarray or type(v2) != np.ndarray:
         raise ValueError('v1 and v2 must both be of type numpy.ndarray')
-    elif v1.ndim != v2.ndim or v1.ndim > 2:
+    if v1.ndim != v2.ndim or v1.ndim > 2:
         raise ValueError('v1 and v2 must both be either 1- or 2-dimensional')
     # * The dot product of two equal vectors will result in a minor rounding error (dot(norm([1,1,1])) = dot([0.57735027, 0.57735027, 0.57735027]) = 1.0000000000000002)
     # * As np.arccos can only handle values from 0.0 to 1.0 (inclusive), we clamp the result to this range, too.
@@ -52,7 +52,7 @@ def dot(v1, v2):
     """
     if type(v1) != np.ndarray or type(v2) != np.ndarray:
         raise ValueError('v1 and v2 must both be of type numpy.ndarray')
-    elif v1.ndim != v2.ndim or v1.ndim > 2:
+    if v1.ndim != v2.ndim or v1.ndim > 2:
         raise ValueError('v1 and v2 must both be either 1- or 2-dimensional')
 
     if v1.ndim == 1 and v2.ndim == 1:
@@ -69,7 +69,7 @@ def v3_to_v4(v):
     """
     if type(v) != np.ndarray:
         raise ValueError('v must be of type numpy.ndarray')
-    elif v.ndim > 2:
+    if v.ndim > 2:
         raise ValueError('v must be either 1- or 2-dimensional (v.ndim == 1|2)')
 
     if v.ndim == 1:
@@ -89,7 +89,7 @@ def rotation(axis: 'np.ndarray', alpha) -> 'np.ndarray':
     """
     if type(axis) != np.ndarray:
         raise ValueError('axis must be of type numpy.ndarray')
-    elif axis.ndim > 2:
+    if axis.ndim > 2:
         raise ValueError('v must be either 1- or 2-dimensional (v.ndim == 1|2)')
     if type(alpha) != float and type(alpha) != np.ndarray:
         raise ValueError('alpha must be of type float or numpy.ndarray')
@@ -122,10 +122,33 @@ def rotation(axis: 'np.ndarray', alpha) -> 'np.ndarray':
 
 
 def transformation(rotation: 'np.ndarray', translation: 'np.ndarray') -> 'np.ndarray':
-    """Returns a 4x4 transformation matrix including a rotation and a translation. 
+    """Returns a 4x4 transformation matrix including a rotation and a translation
+        or an array of 4x4 transformation matrices.
 
     Args:
-        rotation (np.ndarray): A 3x3 rotation matrix.
-        translation (np.ndarray): A 3-D translation vector.
+        rotation (np.ndarray): A 3x3 rotation matrix or an array of matrices.
+        translation (np.ndarray): A 3-D translation vector or an array of vectors.
     """
-    pass
+    if type(rotation) != np.ndarray or type(translation) != np.ndarray:
+        raise ValueError('rotation and tranlastion must be of type numpy.ndarray')
+    if rotation.ndim > 3:
+        raise ValueError('rotation must be either 2- or 3-dimensional (v.ndim == 2|3)')
+    if translation.ndim > 2:
+        raise ValueError('translation must be either 1- or 2-dimensional (v.ndim == 2|3)')
+    if rotation.ndim != translation.ndim + 1:
+        raise ValueError('rotation (ndim=2|3) must have one more dimension than translation (ndim=1|2)')
+
+    h = np.array([0, 0, 0, 1])
+    if rotation.ndim == 2 and translation.ndim == 1:
+        translation = translation.reshape(-1, 1)
+        transformation = np.concatenate((rotation, translation), axis=1)
+        # Add a dimension to h to be able to concatenate
+        transformation = np.concatenate((transformation, h.reshape(1,-1)), axis=0)
+        return transformation
+    if rotation.ndim == 3 and translation.ndim == 2:
+        translation = translation.reshape(len(translation), -1, 1)
+        transformation = np.concatenate((rotation, translation), axis=2)
+        # Add a dimension to h to be able to concatenate
+        h = np.full((len(transformation), 1, 4), h.reshape(-1, 1, 4))
+        transformation = np.concatenate((transformation, h), axis=1)
+        return transformation
