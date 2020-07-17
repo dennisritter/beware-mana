@@ -139,7 +139,7 @@ def transformation(rotation: 'np.ndarray', translation: 'np.ndarray') -> 'np.nda
     if rotation.ndim > 3:
         raise ValueError('rotation must be either 2- or 3-dimensional (v.ndim == 2|3)')
     if translation.ndim > 2:
-        raise ValueError('translation must be either 1- or 2-dimensional (v.ndim == 2|3)')
+        raise ValueError('translation must be either 1- or 2-dimensional (v.ndim == 1|2)')
     if rotation.ndim != translation.ndim + 1:
         raise ValueError('rotation (ndim=2|3) must have one more dimension than translation (ndim=1|2)')
 
@@ -158,3 +158,55 @@ def transformation(rotation: 'np.ndarray', translation: 'np.ndarray') -> 'np.nda
         h = np.full((len(transformation), 1, 4), h.reshape(-1, 1, 4))
         transformation = np.concatenate((transformation, h), axis=1)
         return transformation
+
+def rotation_from_vectors(v_from, v_to):
+    """Returns a rotation matrix that rotates v_from so that it is aligned to v_to
+        or returns an array of rotation matrices.
+
+    Args:
+        v_from (np.ndarray): A 3-D vector that defines the starting direction.
+        v_to (np.ndarray): A 3-D vector that defines the direction v_from points to after it has been rotated by the returned rotation.
+    """
+
+    if v_from.shape != v_to.shape:
+        raise ValueError('v_from and v_to have to share the same shapes')
+    if v_from.ndim > 2 or v_to.ndim > 2:
+        raise ValueError('Translation must be either 1- or 2-dimensional (v.ndim == 1|2)')
+
+    v_from = norm(v_from)
+    v_to = norm(v_to)
+    alpha = get_angle(v_from, v_to)
+    #TODO: Continue
+
+
+def orthogonal_vector(v1: 'np.ndarray', v2: 'np.ndarray'):
+    """Returns a vector that is perpendicular to v1 and v2
+        or an array of vectors that is perpendicular to each pair of vectors in v1 and v2.
+
+    Args:
+        vec1 (np.ndarray): Vector one, which is perpendicular to the returned vector or an array of vectors.
+        vec2 (np.ndarray): Vector two, which is perpendicular to the returned vector or an array of vectors.
+    """
+
+    if v1.shape != v2.shape:
+        raise ValueError('v1 and v2 have to share the same shapes')
+    if v1.ndim > 2 or v2.ndim > 2:
+        raise ValueError('v1 and v2 must be either 1- or 2-dimensional (v.ndim == 1|2)')
+
+    v1 = norm(v1)
+    v2 = norm(v2)
+    v1dotv2 = dot(v1, v2)
+
+    if v1.ndim == 1 and v2.ndim == 1:
+        # If dot product between v1 is -1/1 the vectors are parallel, so use any other unparallel vector
+        if v1dotv2 == -1 or v1dotv2 == 1:
+            return orthogonal_vector(np.random.rand(3), v2)
+        else:
+            return norm(np.cross(v1,v2))
+
+    if v1.ndim == 2 and v2.ndim == 2:
+        v_perpendicular = norm(np.cross(v1, v2))
+        parallels = np.where(v1dotv2 == -1 | v1dotv2==1)
+        for idx in parallels:
+            v_perpendicular[idx] = orthogonal_vector(np.random.rand(3), v2)
+        return v_perpendicular

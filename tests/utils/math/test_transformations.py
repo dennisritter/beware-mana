@@ -158,3 +158,16 @@ def test_transformation_no_translation(rotation, translation, expected):
 def test_transformation_batch(rotation, translation, expected):
     result = t.transformation(rotation, translation)
     np.testing.assert_array_equal(result, expected, verbose=True)
+
+
+@pytest.mark.parametrize('v1, v2, expected',
+                         [(np.array([1, 2, 3]), np.array([1, 1, 1]), np.array([-1.0, 2.0, -1.0]) / np.linalg.norm(np.array([-1.0, 2.0, -1.0]))),
+                          (np.array([1, 1, 1]), np.array([1, 2, 3]), np.array([1.0, -2.0, 1.0]) / np.linalg.norm(np.array([1.0, -2.0, 1.0])))])
+def test_orthogonal_vector_single(v1, v2, expected):
+    result = t.orthogonal_vector(v1, v2)
+    np.testing.assert_allclose(result, expected, verbose=True)
+
+
+# TODO: Add test_orthogonal_vector_single_parallel
+# TODO: Add test_orthogonal_vector_multi
+# TODO: Add test_orthogonal_vector_multi_parallel
