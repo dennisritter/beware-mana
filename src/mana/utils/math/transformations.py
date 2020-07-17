@@ -126,9 +126,14 @@ def transformation(rotation: 'np.ndarray', translation: 'np.ndarray') -> 'np.nda
         or an array of 4x4 transformation matrices.
 
     Args:
-        rotation (np.ndarray): A 3x3 rotation matrix or an array of matrices.
-        translation (np.ndarray): A 3-D translation vector or an array of vectors.
+        rotation (np.ndarray): A 3x3 rotation matrix or an array of matrices. (default=np.array([[1,0,0],[0,1,0],[0,0,1]]))
+        translation (np.ndarray): A 3-D translation vector or an array of vectors. (default=np.zeros(3))
     """
+    if rotation is None:
+        rotation = np.array([[1,0,0], [0,1,0], [0,0,1]])
+    if translation is None:
+        translation = np.array([0,0,0])
+
     if type(rotation) != np.ndarray or type(translation) != np.ndarray:
         raise ValueError('rotation and tranlastion must be of type numpy.ndarray')
     if rotation.ndim > 3:
@@ -137,6 +142,7 @@ def transformation(rotation: 'np.ndarray', translation: 'np.ndarray') -> 'np.nda
         raise ValueError('translation must be either 1- or 2-dimensional (v.ndim == 2|3)')
     if rotation.ndim != translation.ndim + 1:
         raise ValueError('rotation (ndim=2|3) must have one more dimension than translation (ndim=1|2)')
+
 
     h = np.array([0, 0, 0, 1])
     if rotation.ndim == 2 and translation.ndim == 1:

@@ -136,6 +136,21 @@ def test_transformation_single(rotation, translation, expected):
     np.testing.assert_array_equal(result, expected, verbose=True)
 
 
+@pytest.mark.parametrize('rotation, translation, expected',
+                         [(None, np.array([1, 2, 3]), np.array([[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 2.0], [0.0, 0.0, 1.0, 3.0], [0, 0, 0, 1]]))])
+def test_transformation_no_rotation(rotation, translation, expected):
+    result = t.transformation(rotation, translation)
+    np.testing.assert_array_equal(result, expected, verbose=True)
+
+
+@pytest.mark.parametrize(
+    'rotation, translation, expected',
+    [(np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), None, np.array([[1.0, 2.0, 3.0, 0.0], [4.0, 5.0, 6.0, 0.0], [7.0, 8.0, 9.0, 0.0], [0, 0, 0, 1]]))])
+def test_transformation_no_translation(rotation, translation, expected):
+    result = t.transformation(rotation, translation)
+    np.testing.assert_array_equal(result, expected, verbose=True)
+
+
 @pytest.mark.parametrize(
     'rotation, translation, expected',
     [(np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[11, 22, 33], [44, 55, 66], [77, 88, 99]]]), np.array([[0, 0, 0], [6, 15, 24]]),
