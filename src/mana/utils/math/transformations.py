@@ -9,6 +9,7 @@ def norm(v: 'np.ndarray') -> 'np.ndarray':
 
     Args:
         vec_arr (np.ndarray): Either a 1-D array that represents the vector to normalize or a 2-D array containing the vectors to normalize.
+
     """
     if type(v) != np.ndarray:
         raise ValueError('v must be of type numpy.ndarray')
@@ -26,13 +27,13 @@ def norm(v: 'np.ndarray') -> 'np.ndarray':
         return preprocessing.normalize(v, norm='l2')
 
 
-def get_angle(v1, v2):
+def get_angle(v1: Union[float, 'np.ndarray'], v2: Union[float, 'np.ndarray']) -> Union[float, 'np.ndarray']:
     """Returns the angle (radians) between the vectors v1, v2 if single vectors are given (v1,v2 ndim == 1).
        Returns an array of angles (radians) between respective vectors in v1, v2 arrays of vectors ((v1,v2 ndim == 2)).
 
     Args:
-        v1 (np.ndarray): A 3-D vector or an array of 3-D vectors.
-        v2 (np.ndarray): A 3-D vector or an array of 3-D vectors.
+        v1 (Union[float, np.ndarray]): A 3-D vector or an array of 3-D vectors.
+        v2 (Union[float, np.ndarray]): A 3-D vector or an array of 3-D vectors.
     """
     if type(v1) != np.ndarray or type(v2) != np.ndarray:
         raise ValueError('v1 and v2 must both be of type numpy.ndarray')
@@ -43,7 +44,7 @@ def get_angle(v1, v2):
     return np.arccos(np.clip(dot(norm(v1), norm(v2)), 0.0, 1.0))
 
 
-def dot(v1, v2):
+def dot(v1: 'np.ndarray', v2: 'np.ndarray'):
     """Returns the dot product between v1 and v2 (v1,v2 ndim == 1).
        Returns an array of dot products between respective vectors in v1 and v2 (v1,v2 ndim == 2).
 
@@ -62,7 +63,7 @@ def dot(v1, v2):
         return (v1 @ v2.transpose()).diagonal()
 
 
-def v3_to_v4(v):
+def v3_to_v4(v: 'np.ndarray'):
     """Returns a 3-D position vector with appended homogenious coordinate from the given 3-D vector or an array of such vectors.
 
     Args:
@@ -79,14 +80,14 @@ def v3_to_v4(v):
         return np.hstack((v, np.ones(len(v)).reshape((len(v), 1))))
 
 
-def rotation(axis: 'np.ndarray', alpha) -> 'np.ndarray':
+def rotation(axis: 'np.ndarray', alpha: Union[float, np.ndarray]) -> 'np.ndarray':
     # Source: https://stackoverflow.com/questions/6802577/rotation-of-3d-vector
     """Returns a 3x3 numpy array that represents a rotation about the given axis for the given angle alpha (radians)
         or Returns an array of rotations if axis and alpha are arrays of axes/angles.
     
     Args:
         axis (np.ndarray): A 3-D (ndim=3) vector that describes the axis to rotate about.
-        alpha (float or np.ndarray): The angle to rotate for in radians.
+        alpha (Union[float, np.ndarray]): The angle to rotate for in radians.
     """
     if type(axis) != np.ndarray:
         raise ValueError('axis must be of type numpy.ndarray')
@@ -160,7 +161,7 @@ def transformation(rotation: 'np.ndarray', translation: 'np.ndarray') -> 'np.nda
         transformation = np.concatenate((transformation, h), axis=1)
         return transformation
 
-def rotation_from_vectors(v_from, v_to):
+def rotation_from_vectors(v_from: 'np.ndarray', v_to: 'np.ndarray') -> 'np.ndarray':
     """Returns a rotation matrix that rotates v_from so that it is aligned to v_to
         or returns an array of rotation matrices.
 
