@@ -190,3 +190,4 @@ def test_orthogonal_vector_multi(v1, v2, expected):
 def test_orthogonal_vector_multi_parallel(v1, v2, expected):
     result = t.orthogonal_vector(v1, v2)
     np.testing.assert_allclose(t.dot(result, v1), expected, atol=1e-07, verbose=True)
+    np.testing.assert_allclose(t.dot(result, v2), expected, atol=1e-07, verbose=True)
