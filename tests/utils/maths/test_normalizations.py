@@ -107,3 +107,86 @@ def test_all_poses_mean(var, mode, expected):
     """Tests if the (combined) mean for all frames is computed and subtracted accordingly."""
     # using pytest approx to avoid floating point arithmetic issues
     pytest.approx(n.all_poses_mean(var, mode) == expected)
+
+
+@pytest.mark.parametrize(
+    'var, pos_idx, expected',
+    [
+        (np.array([
+            [[2, 3, 4], [5, 1, 2], [3, 3, 3], [1, 0, 1]],
+            [[1, 2, 3], [3, 2, 1], [4, 0, 3], [5, 4, 2]],
+            [[3, 5, 4], [0, 0, 1], [2, 1, 2], [3, 2, 1]],
+        ]), 1,
+         np.array([
+             [[-3, 2, 2], [0, 0, 0], [-2, 2, 1], [-4, -1, -1]],
+             [[-4, 1, 1], [-2, 1, -1], [-1, -1, 1], [0, 3, 0]],
+             [[-2, 4, 2], [-5, -1, -1], [-3, 0, 0], [-2, 1, -1]],
+         ])),
+        (np.array([
+            [[1, 1, 1, 0], [2, 0, 3, 0], [3, 1, 2, 3], [0, 1, 0, 1],
+             [0, 0, 0, 0]],
+            [[5, 1, 4, 2], [3, 3, 1, 0], [4, 3, 2, 1], [3, 1, 0, 5],
+             [1, 1, 0, 0]],
+        ]), 2,
+         np.array([
+             [[-2, 0, -1, -3], [-1, -1, 1, -3], [0, 0, 0, 0], [-3, 0, -2, -2],
+              [-3, -1, -2, -3]],
+             [[2, 0, 2, -1], [0, 2, -1, -3], [1, 2, 0, -2], [0, 0, -2, 2],
+              [-2, 0, -2, -3]],
+         ])),
+    ],
+)
+def test_first_pose_position(var, pos_idx, expected):
+    """Tests if the positions for all frames will be translated relative to the
+    vector of the selected position of the first frame."""
+    assert (n.pose_position(var, position_idx=pos_idx) == expected).all()
+
+
+@pytest.mark.parametrize(
+    'var, pos, expected',
+    [
+        (np.array([
+            [[2, 3, 4], [5, 1, 2], [3, 3, 3], [1, 0, 1]],
+            [[1, 2, 3], [3, 2, 1], [4, 0, 3], [5, 4, 2]],
+            [[3, 5, 4], [0, 0, 1], [2, 1, 2], [3, 2, 1]],
+        ]), np.array([5, 1, 2]),
+         np.array([
+             [[-3, 2, 2], [0, 0, 0], [-2, 2, 1], [-4, -1, -1]],
+             [[-4, 1, 1], [-2, 1, -1], [-1, -1, 1], [0, 3, 0]],
+             [[-2, 4, 2], [-5, -1, -1], [-3, 0, 0], [-2, 1, -1]],
+         ])),
+        (np.array([
+            [[2, 3, 4], [5, 1, 2], [3, 3, 3], [1, 0, 1]],
+            [[1, 2, 3], [3, 2, 1], [4, 0, 3], [5, 4, 2]],
+            [[3, 5, 4], [0, 0, 1], [2, 1, 2], [3, 2, 1]],
+        ]), np.array([
+            [5, 1, 2],
+            [3, 2, 1],
+            [0, 0, 1],
+        ]),
+         np.array([
+             [[-3, 2, 2], [0, 0, 0], [-2, 2, 1], [-4, -1, -1]],
+             [[-2, 0, 2], [0, 0, 0], [1, -2, 2], [2, 2, 1]],
+             [[3, 5, 3], [0, 0, 0], [2, 1, 1], [3, 2, 0]],
+         ])),
+        (np.array([
+            [[1, 1, 1, 0], [2, 0, 3, 0], [3, 1, 2, 3], [0, 1, 0, 1],
+             [0, 0, 0, 0]],
+            [[5, 1, 4, 2], [3, 3, 1, 0], [4, 3, 2, 1], [3, 1, 0, 5],
+             [1, 1, 0, 0]],
+        ]), np.array([
+            [3, 1, 2, 3],
+            [4, 3, 2, 1],
+        ]),
+         np.array([
+             [[-2, 0, -1, -3], [-1, -1, 1, -3], [0, 0, 0, 0], [-3, 0, -2, -2],
+              [-3, -1, -2, -3]],
+             [[1, -2, 2, 1], [-1, 0, -1, -1], [0, 0, 0, 0], [-1, -2, -2, 4],
+              [-3, -2, -2, -1]],
+         ])),
+    ],
+)
+def test_all_poses_position(var, pos, expected):
+    """Tests if the positions for all frames will be translated by the given
+    vector or array of vectors."""
+    assert (n.pose_position(var, position=pos) == expected).all()

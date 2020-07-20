@@ -49,3 +49,45 @@ def all_poses_mean(array, mode='all'):
         return array - np.expand_dims(np.mean(array, axis=-2), -2)
     else:
         return array - np.mean(array, axis=(0, -2))
+
+
+def pose_position(array: np.ndarray,
+                  position_idx: int = 0,
+                  position: np.ndarray = None) -> np.ndarray:
+    """Normalizes the pose positions by translating them to a given origin.
+
+    Args:
+        array (np.ndarray): The input array of dimensionality =3.
+            Where the first dimension = number of frames,
+            the second lst dimension = number of positions,
+            and the last dimension = number of axis.
+        position_idx (int): The index of the position/ vector which should be
+            used to translate all positions. Defaults to 0 (first position).
+        position (np.ndarray): The vector to translate all positions to.
+            Number of axis must match the input array. Can be either a
+            single array or multi-dimensional = number of input array frames.
+            If multi-dimensional each frame will be subtracted by the
+            corresponding position value. Defaults to None -> Translation based
+            on first frame and given position_idx. Ignores position_idx if
+            single array is given.
+
+    Returns:
+        np.ndarray: The array translated to the specified origin.
+
+    Raises:
+        ValueError: if array is of dimensionalty < 3
+        ValueErrof: if position dimensionality does not match number of input
+            arry axis.
+    """
+
+    if not array.ndim == 3:
+        raise ValueError('Array need to have three dimensions!')
+
+    if position is None:
+        return array - array[0, position_idx]
+    else:
+        if position.shape[-1] == array.shape[-1]:
+            return array - np.expand_dims(position, -2)
+        else:
+            raise ValueError(
+                'Position array must match the input arrays number of axis!')
