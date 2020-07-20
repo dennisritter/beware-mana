@@ -27,7 +27,7 @@ def norm(v: 'np.ndarray') -> 'np.ndarray':
         return preprocessing.normalize(v, norm='l2')
 
 
-def get_angle(v1: Union[float, 'np.ndarray'], v2: Union[float, 'np.ndarray']) -> Union[float, 'np.ndarray']:
+def get_angle(v1: 'np.ndarray', v2: 'np.ndarray') -> Union[float, np.float64, np.float32, 'np.ndarray']:
     """Returns the angle (radians) between the vectors v1, v2 if single vectors are given (v1,v2 ndim == 1) or
        an array of angles (radians).
 
@@ -80,7 +80,7 @@ def v3_to_v4(v: 'np.ndarray'):
         return np.hstack((v, np.ones(len(v)).reshape((len(v), 1))))
 
 
-def rotation(axis: 'np.ndarray', alpha: Union[float, np.ndarray]) -> 'np.ndarray':
+def rotation(axis: 'np.ndarray', alpha: Union[float, np.float64, np.float32, np.ndarray]) -> 'np.ndarray':
     # Source: https://stackoverflow.com/questions/6802577/rotation-of-3d-vector
     """Returns a 3x3 numpy array that represents a rotation about the given axis for the given angle alpha (radians)
         or an array of such rotations.
@@ -93,8 +93,8 @@ def rotation(axis: 'np.ndarray', alpha: Union[float, np.ndarray]) -> 'np.ndarray
         raise ValueError('axis must be of type numpy.ndarray')
     if axis.ndim > 2:
         raise ValueError('v must be either 1- or 2-dimensional (v.ndim == 1|2)')
-    if type(alpha) != float and type(alpha) != np.ndarray:
-        raise ValueError('alpha must be of type float or numpy.ndarray')
+    if type(alpha) not in [float, np.float64, np.float32, np.ndarray]:
+        raise ValueError(f'alpha must be of type float, numpy.float64, numpy.float32 or numpy.ndarray. (type(alpha)={type(alpha)})')
 
     axis = norm(axis)
     a = np.cos(alpha / 2)
@@ -161,28 +161,6 @@ def transformation(rotation: 'np.ndarray', translation: 'np.ndarray') -> 'np.nda
         transformation = np.concatenate((transformation, h), axis=1)
         return transformation
 
-def rotation_from_vectors(v_from: 'np.ndarray', v_to: 'np.ndarray') -> 'np.ndarray':
-    """Returns a 3x3 rotation matrix that rotates v_from so that it is aligned to v_to
-        or returns an array of such rotation matrices.
-
-    Args:
-        v_from (np.ndarray): A 3-D vector that defines the starting direction or an array of such vectors.
-        v_to (np.ndarray): A 3-D vector that defines the direction v_from points to after it has been rotated by the returned rotation or an array of such vectors.
-    """
-
-    if v_from.shape != v_to.shape:
-        raise ValueError('v_from and v_to have to share the same shapes')
-    if v_from.ndim > 2 or v_to.ndim > 2:
-        raise ValueError('Translation must be either 1- or 2-dimensional (v.ndim == 1|2)')
-
-    v_from = norm(v_from)
-    v_to = norm(v_to)
-    alpha = get_angle(v_from, v_to)
-    rotation_axis = orthogonal_vector(v_from, v_to)
-    rotation_matrix = rotation(rotation_axis, alpha)
-    return rotation_matrix
-
-
 def orthogonal_vector(v1: 'np.ndarray', v2: 'np.ndarray') -> 'np.ndarray':
     """Returns a vector that is orthogonal to v1 and v2
         or an array of such vectors that are orthogonal to each pair of vectors in v1 and v2.
@@ -216,3 +194,26 @@ def orthogonal_vector(v1: 'np.ndarray', v2: 'np.ndarray') -> 'np.ndarray':
             v_perpendicular[idx] = orthogonal_vector(np.random.rand(3), v2[idx])
 
         return v_perpendicular
+
+def rotation_from_vectors(v_from: 'np.ndarray', v_to: 'np.ndarray') -> 'np.ndarray':
+    """Returns a 3x3 rotation matrix that rotates v_from so that it is aligned to v_to
+        or returns an array of such rotation matrices.
+
+    Args:
+        v_from (np.ndarray): A 3-D vector that defines the starting direction or an array of such vectors.
+        v_to (np.ndarray): A 3-D vector that defines the direction v_from points to after it has been rotated by the returned rotation or an array of such vectors.
+    """
+
+    if v_from.shape != v_to.shape:
+        raise ValueError('v_from and v_to have to share the same shapes')
+    if v_from.ndim > 2 or v_to.ndim > 2:
+        raise ValueError('Translation must be either 1- or 2-dimensional (v.ndim == 1|2)')
+
+    v_from = norm(v_from)
+    v_to = norm(v_to)
+    # * Evaluate why we have to turn vectors (v_from, v_to) gives wrong results
+    # -> idea: Orthogonal vector returns the "wrong"/mirrored rotation axis for the given angle, which results in rotating v_from in the opposite direction.
+    alpha = get_angle(v_to, v_from)
+    rotation_axis = orthogonal_vector(v_to, v_from)
+    rotation_matrix = rotation(rotation_axis, alpha)
+    return rotation_matrix

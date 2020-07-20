@@ -191,3 +191,33 @@ def test_orthogonal_vector_multi_parallel(v1, v2, expected):
     result = t.orthogonal_vector(v1, v2)
     np.testing.assert_allclose(t.dot(result, v1), expected, atol=1e-07, verbose=True)
     np.testing.assert_allclose(t.dot(result, v2), expected, atol=1e-07, verbose=True)
+
+
+# Expected result vector is v_from multiplied with the returned rotation, which must be v_to
+@pytest.mark.parametrize('v_from, v_to, expected', [(np.array([1, 1, 1]), np.array([1, 2, 3]), np.array([1, 2, 3])),
+                                                    (np.array([1, 0, 0]), np.array([0, 1, 0]), np.array([0, 1, 0]))])
+def test_rotation_from_vectors_single(v_from, v_to, expected):
+    result = t.rotation_from_vectors(v_from, v_to)
+    np.testing.assert_allclose(t.norm(v_from) @ result, t.norm(expected), atol=1e-7, verbose=True)
+
+
+@pytest.mark.parametrize('v_from, v_to, expected', [(np.array([1, 1, 1]), np.array([1, 1, 1]), np.identity(3)),
+                                                    (np.array([1, 2, 3]), np.array([1, 2, 3]), np.identity(3))])
+def test_rotation_from_vectors_single_equals(v_from, v_to, expected):
+    result = t.rotation_from_vectors(v_from, v_to)
+    np.testing.assert_array_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    'v_from, v_to, expected',
+    [(np.array([[1, 1, 1], [1, 2, 3], [0.1, 3.3, 7.0]]), np.array([[1, 1, 1], [1, 2, 3], [0.1, 3.3, 7.0]]), np.array([[1, 1, 1], [1, 2, 3], [0.1, 3.3, 7.0]]))])
+def test_rotation_from_vectors_multi(v_from, v_to, expected):
+    result = t.rotation_from_vectors(v_from, v_to)
+    np.testing.assert_allclose(np.array([t.norm(v_from[idx]) @ result[idx] for idx, _ in enumerate(result)]), t.norm(expected), atol=1e-7, verbose=True)
+
+
+@pytest.mark.parametrize('v_from, v_to, expected',
+                         [(np.array([[1, 1, 1], [1, 2, 3]]), np.array([[1, 1, 1], [1, 2, 3]]), np.array([np.identity(3), np.identity(3)]))])
+def test_rotation_from_vectors_multi_equals(v_from, v_to, expected):
+    result = t.rotation_from_vectors(v_from, v_to)
+    np.testing.assert_array_equal(result, expected)
