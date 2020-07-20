@@ -28,12 +28,12 @@ def norm(v: 'np.ndarray') -> 'np.ndarray':
 
 
 def get_angle(v1: Union[float, 'np.ndarray'], v2: Union[float, 'np.ndarray']) -> Union[float, 'np.ndarray']:
-    """Returns the angle (radians) between the vectors v1, v2 if single vectors are given (v1,v2 ndim == 1).
-       Returns an array of angles (radians) between respective vectors in v1, v2 arrays of vectors ((v1,v2 ndim == 2)).
+    """Returns the angle (radians) between the vectors v1, v2 if single vectors are given (v1,v2 ndim == 1) or
+       an array of angles (radians).
 
     Args:
-        v1 (Union[float, np.ndarray]): A 3-D vector or an array of 3-D vectors.
-        v2 (Union[float, np.ndarray]): A 3-D vector or an array of 3-D vectors.
+        v1 (Union[float, np.ndarray]): A 3-D vector or an array of such vectors.
+        v2 (Union[float, np.ndarray]): A 3-D vector or an array of such vectors.
     """
     if type(v1) != np.ndarray or type(v2) != np.ndarray:
         raise ValueError('v1 and v2 must both be of type numpy.ndarray')
@@ -49,8 +49,8 @@ def dot(v1: 'np.ndarray', v2: 'np.ndarray'):
        Returns an array of dot products between respective vectors in v1 and v2 (v1,v2 ndim == 2).
 
     Args:
-        v1 (np.ndarray): A 3-D vector or an array of 3-D vectors.
-        v2 (np.ndarray): A 3-D vector or an array of 3-D vectors.
+        v1 (np.ndarray): A 3-D vector or an array of such vectors.
+        v2 (np.ndarray): A 3-D vector or an array of such vectors.
     """
     if type(v1) != np.ndarray or type(v2) != np.ndarray:
         raise ValueError('v1 and v2 must both be of type numpy.ndarray')
@@ -67,7 +67,7 @@ def v3_to_v4(v: 'np.ndarray'):
     """Returns a 3-D position vector with appended homogenious coordinate from the given 3-D vector or an array of such vectors.
 
     Args:
-        v (np.ndarray): A 3-D vector or an array of 3-D vectors.
+        v (np.ndarray): A 3-D vector or an array of such vectors.
     """
     if type(v) != np.ndarray:
         raise ValueError('v must be of type numpy.ndarray')
@@ -83,11 +83,11 @@ def v3_to_v4(v: 'np.ndarray'):
 def rotation(axis: 'np.ndarray', alpha: Union[float, np.ndarray]) -> 'np.ndarray':
     # Source: https://stackoverflow.com/questions/6802577/rotation-of-3d-vector
     """Returns a 3x3 numpy array that represents a rotation about the given axis for the given angle alpha (radians)
-        or Returns an array of rotations if axis and alpha are arrays of axes/angles.
+        or an array of such rotations.
     
     Args:
-        axis (np.ndarray): A 3-D (ndim=3) vector that describes the axis to rotate about.
-        alpha (Union[float, np.ndarray]): The angle to rotate for in radians.
+        axis (np.ndarray): A 3-D (ndim=3) vector that describes the axis to rotate about or an array of such vectors.
+        alpha (Union[float, np.ndarray]): The angle to rotate for in radians or an array of such angles.
     """
     if type(axis) != np.ndarray:
         raise ValueError('axis must be of type numpy.ndarray')
@@ -125,11 +125,11 @@ def rotation(axis: 'np.ndarray', alpha: Union[float, np.ndarray]) -> 'np.ndarray
 
 def transformation(rotation: 'np.ndarray', translation: 'np.ndarray') -> 'np.ndarray':
     """Returns a 4x4 transformation matrix including a rotation and a translation
-        or an array of 4x4 transformation matrices.
+        or an array of such 4x4 transformation matrices.
 
     Args:
         rotation (np.ndarray): A 3x3 rotation matrix or an array of matrices. (default=np.array([[1,0,0],[0,1,0],[0,0,1]]))
-        translation (np.ndarray): A 3-D translation vector or an array of vectors. (default=np.zeros(3))
+        translation (np.ndarray): A 3-D translation vector or an array of such vectors. (default=np.zeros(3))
     """
     if rotation is None:
         rotation = np.array([[1,0,0], [0,1,0], [0,0,1]])
@@ -162,12 +162,12 @@ def transformation(rotation: 'np.ndarray', translation: 'np.ndarray') -> 'np.nda
         return transformation
 
 def rotation_from_vectors(v_from: 'np.ndarray', v_to: 'np.ndarray') -> 'np.ndarray':
-    """Returns a rotation matrix that rotates v_from so that it is aligned to v_to
-        or returns an array of rotation matrices.
+    """Returns a 3x3 rotation matrix that rotates v_from so that it is aligned to v_to
+        or returns an array of such rotation matrices.
 
     Args:
-        v_from (np.ndarray): A 3-D vector that defines the starting direction or an array of vectors.
-        v_to (np.ndarray): A 3-D vector that defines the direction v_from points to after it has been rotated by the returned rotation or an array of vectors.
+        v_from (np.ndarray): A 3-D vector that defines the starting direction or an array of such vectors.
+        v_to (np.ndarray): A 3-D vector that defines the direction v_from points to after it has been rotated by the returned rotation or an array of such vectors.
     """
 
     if v_from.shape != v_to.shape:
@@ -178,16 +178,18 @@ def rotation_from_vectors(v_from: 'np.ndarray', v_to: 'np.ndarray') -> 'np.ndarr
     v_from = norm(v_from)
     v_to = norm(v_to)
     alpha = get_angle(v_from, v_to)
-    #TODO: Continue
+    rotation_axis = orthogonal_vector(v_from, v_to)
+    rotation_matrix = rotation(rotation_axis, alpha)
+    return rotation_matrix
 
 
 def orthogonal_vector(v1: 'np.ndarray', v2: 'np.ndarray') -> 'np.ndarray':
-    """Returns a vector that is perpendicular to v1 and v2
-        or an array of vectors that is perpendicular to each pair of vectors in v1 and v2.
+    """Returns a vector that is orthogonal to v1 and v2
+        or an array of such vectors that are orthogonal to each pair of vectors in v1 and v2.
 
     Args:
-        vec1 (np.ndarray): Vector one, which is perpendicular to the returned vector or an array of vectors.
-        vec2 (np.ndarray): Vector two, which is perpendicular to the returned vector or an array of vectors.
+        vec1 (np.ndarray): Vector one, which is orthogonal to the returned vector or an array of such vectors.
+        vec2 (np.ndarray): Vector two, which is orthogonal to the returned vector or an array of such vectors.
     """
 
     if v1.shape != v2.shape:
