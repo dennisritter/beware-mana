@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import sklearn.preprocessing as preprocessing
+from typing import Union
 
 
 def norm(v: 'np.ndarray') -> 'np.ndarray':
@@ -164,8 +165,8 @@ def rotation_from_vectors(v_from, v_to):
         or returns an array of rotation matrices.
 
     Args:
-        v_from (np.ndarray): A 3-D vector that defines the starting direction.
-        v_to (np.ndarray): A 3-D vector that defines the direction v_from points to after it has been rotated by the returned rotation.
+        v_from (np.ndarray): A 3-D vector that defines the starting direction or an array of vectors.
+        v_to (np.ndarray): A 3-D vector that defines the direction v_from points to after it has been rotated by the returned rotation or an array of vectors.
     """
 
     if v_from.shape != v_to.shape:
@@ -179,7 +180,7 @@ def rotation_from_vectors(v_from, v_to):
     #TODO: Continue
 
 
-def orthogonal_vector(v1: 'np.ndarray', v2: 'np.ndarray'):
+def orthogonal_vector(v1: 'np.ndarray', v2: 'np.ndarray') -> 'np.ndarray':
     """Returns a vector that is perpendicular to v1 and v2
         or an array of vectors that is perpendicular to each pair of vectors in v1 and v2.
 
@@ -206,7 +207,9 @@ def orthogonal_vector(v1: 'np.ndarray', v2: 'np.ndarray'):
 
     if v1.ndim == 2 and v2.ndim == 2:
         v_perpendicular = norm(np.cross(v1, v2))
-        parallels = np.where(v1dotv2 == -1 | v1dotv2==1)
+        parallels = np.where((np.isclose(v1dotv2, -1)) | (np.isclose(v1dotv2, 1)))[0]
+        # For all parallel v1/v2 pairs, reassign v1 with a random vector and check if its parallel, again.
         for idx in parallels:
-            v_perpendicular[idx] = orthogonal_vector(np.random.rand(3), v2)
+            v_perpendicular[idx] = orthogonal_vector(np.random.rand(3), v2[idx])
+
         return v_perpendicular

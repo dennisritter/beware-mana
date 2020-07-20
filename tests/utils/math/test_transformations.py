@@ -165,9 +165,28 @@ def test_transformation_batch(rotation, translation, expected):
                           (np.array([1, 1, 1]), np.array([1, 2, 3]), np.array([1.0, -2.0, 1.0]) / np.linalg.norm(np.array([1.0, -2.0, 1.0])))])
 def test_orthogonal_vector_single(v1, v2, expected):
     result = t.orthogonal_vector(v1, v2)
-    np.testing.assert_allclose(result, expected, verbose=True)
+    np.testing.assert_allclose(result, expected, atol=1e-07, verbose=True)
 
 
-# TODO: Add test_orthogonal_vector_single_parallel
-# TODO: Add test_orthogonal_vector_multi
-# TODO: Add test_orthogonal_vector_multi_parallel
+# For parallel vectors, don't assert the actual vector but whether the dot product between v1/v2 and the returned vector is 0 (90 degreees)
+@pytest.mark.parametrize('v1, v2, expected', [(np.array([1, 1, 1]), np.array([1, 1, 1]), 0), (np.array([1, 2, 3]), np.array([1, 2, 3]), 0)])
+def test_orthogonal_vector_single_parallel(v1, v2, expected):
+    result_vec = t.orthogonal_vector(v1, v2)
+    assert t.dot(result_vec, v1) == pytest.approx(0.0)
+    assert t.dot(result_vec, v2) == pytest.approx(0.0)
+
+
+@pytest.mark.parametrize(
+    'v1, v2, expected',
+    [(np.array([[1, 1, 1], [1, 2, 3]]), np.array([[1, 2, 3], [1, 1, 1]]),
+      np.array([[1.0, -2.0, 1.0] / np.linalg.norm(np.array([1.0, -2.0, 1.0])), [-1.0, 2.0, -1.0] / np.linalg.norm(np.array([-1.0, 2.0, -1.0]))]))])
+def test_orthogonal_vector_multi(v1, v2, expected):
+    result = t.orthogonal_vector(v1, v2)
+    np.testing.assert_allclose(result, expected, atol=1e-07, verbose=True)
+
+
+# For parallel vectors, don't assert the actual vector but whether the dot product between v1/v2 and the returned vector is 0 (90 degreees)
+@pytest.mark.parametrize('v1, v2, expected', [(np.array([[1, 1, 1], [1, 2, 3]]), np.array([[1, 1, 1], [1, 2, 3]]), np.array([0.0, 0.0]))])
+def test_orthogonal_vector_multi_parallel(v1, v2, expected):
+    result = t.orthogonal_vector(v1, v2)
+    np.testing.assert_allclose(t.dot(result, v1), expected, atol=1e-07, verbose=True)
