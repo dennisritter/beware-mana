@@ -51,9 +51,7 @@ def all_poses_mean(array, mode='all'):
         return array - np.mean(array, axis=(0, -2))
 
 
-def pose_position(array: np.ndarray,
-                  position_idx: int = 0,
-                  position: np.ndarray = None) -> np.ndarray:
+def pose_position(array: np.ndarray, position: np.ndarray) -> np.ndarray:
     """Normalizes the pose positions by translating them to a given origin.
 
     Args:
@@ -61,15 +59,11 @@ def pose_position(array: np.ndarray,
             Where the first dimension = number of frames,
             the second lst dimension = number of positions,
             and the last dimension = number of axis.
-        position_idx (int): The index of the position/ vector which should be
-            used to translate all positions. Defaults to 0 (first position).
         position (np.ndarray): The vector to translate all positions to.
             Number of axis must match the input array. Can be either a
             single array or multi-dimensional = number of input array frames.
             If multi-dimensional each frame will be subtracted by the
-            corresponding position value. Defaults to None -> Translation based
-            on first frame and given position_idx. Ignores position_idx if
-            single array is given.
+            corresponding position value.
 
     Returns:
         np.ndarray: The array translated to the specified origin.
@@ -83,11 +77,8 @@ def pose_position(array: np.ndarray,
     if not array.ndim == 3:
         raise ValueError('Array need to have three dimensions!')
 
-    if position is None:
-        return array - array[0, position_idx]
+    if position.shape[-1] == array.shape[-1]:
+        return array - np.expand_dims(position, -2)
     else:
-        if position.shape[-1] == array.shape[-1]:
-            return array - np.expand_dims(position, -2)
-        else:
-            raise ValueError(
-                'Position array must match the input arrays number of axis!')
+        raise ValueError(
+            'Position array must match the input arrays number of axis!')
