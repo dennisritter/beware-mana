@@ -212,8 +212,30 @@ def rotation_from_vectors(v_from: 'np.ndarray', v_to: 'np.ndarray') -> 'np.ndarr
     v_from = norm(v_from)
     v_to = norm(v_to)
     # * Evaluate why we have to turn vectors (v_from, v_to) gives wrong results
-    # -> idea: Orthogonal vector returns the "wrong"/mirrored rotation axis for the given angle, which results in rotating v_from in the opposite direction.
+    # Orthogonal vector returns the "wrong"/mirrored rotation axis for the given angle, which results in rotating v_from in the opposite direction.
     alpha = get_angle(v_to, v_from)
     rotation_axis = orthogonal_vector(v_to, v_from)
     rotation_matrix = rotation(rotation_axis, alpha)
     return rotation_matrix
+
+def mat_mul_batch(m1, m2):
+    # TODO: Discuss and optimize with Christopher/Kristian.
+    """Returns an array of matrices or vectors that resulted from matrix multiplying m1 with m2.
+
+        Make sure to provide two numpy arrays with ndim = 3. If you want to transform vectors, add an arbitrary last dimension for each value. 
+        Example: a list of vectors like [[1,2,3], [1,2,3], ...] should be reshaped to [[[1],[2],[3]], [[1],[2],[3]], ...]
+        Arbitrary dimensions in the resulting list of matrices/vectors are removed with result.squeeze() for better handling.
+
+    Args:
+        m1 (np.ndarray): An array of matrices.
+        m2 (np.ndarray): An array of matrices.
+
+    """
+    if m1.ndim != 3 or m2.ndim != 3:
+        raise ValueError('m1 and m2 dimensionality have to be 3. Use pythons "@" operator to perform a matrix multiplication for two single matrices.')
+    if m1.shape[0] != m2.shape[0]:
+        raise ValueError('m1 and m2 have to contain the same number of matrices. (m1.shape[0] == m2.shape[0]).')
+    if m1.shape[2] != m2.shape[1]:
+        raise ValueError('Shapes of matrices in m1 and m2 have to fit for matrix multiplication. (m1[i].shape[1] == m2[i].shape[0])')
+    result = m1 @ m2
+    return result.squeeze()

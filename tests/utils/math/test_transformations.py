@@ -221,3 +221,29 @@ def test_rotation_from_vectors_multi(v_from, v_to, expected):
 def test_rotation_from_vectors_multi_equals(v_from, v_to, expected):
     result = t.rotation_from_vectors(v_from, v_to)
     np.testing.assert_array_equal(result, expected)
+
+
+@pytest.mark.parametrize('m1, m2, expected',
+                         [(np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+                                     ]), np.array([[[1, 0, 0], [0, 1, 0], [0, 0, 1]], [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+                                                   ]), np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[30, 36, 42], [66, 81, 96], [102, 126, 150]]]))])
+def test_mat_mul_batch_matrices_3x3(m1, m2, expected):
+    result = t.mat_mul_batch(m1, m2)
+    np.testing.assert_array_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    'm1, m2, expected',
+    [(np.array([[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]], [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]
+                ]), np.array([[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]]),
+      np.array([[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]], [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]]))])
+def test_mat_mul_batch_matrices_4x4(m1, m2, expected):
+    result = t.mat_mul_batch(m1, m2)
+    np.testing.assert_array_equal(result, expected)
+
+
+@pytest.mark.parametrize('m1, m2, expected', [(np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+                                                         ]), np.array([[[1], [1], [1]], [[1], [2], [3]]]), np.array([[6, 15, 24], [14, 32, 50]]))])
+def test_mat_mul_batch_matrices_and_vectors(m1, m2, expected):
+    result = t.mat_mul_batch(m1, m2)
+    np.testing.assert_array_equal(result, expected)
