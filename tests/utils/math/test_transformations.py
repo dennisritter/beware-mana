@@ -3,6 +3,8 @@ import mana.utils.math.transformations as t
 import numpy as np
 import math
 
+from mana.utils.math.transformations import projection_matrix
+
 
 # norm
 def test_norm_zero_vec():
@@ -255,3 +257,10 @@ def test_bmvm_3x3(m, v, expected):
 def test_bmvm_4x4(m, v, expected):
     result = t.bmvm(m, v)
     np.testing.assert_array_equal(result, expected)
+
+
+@pytest.mark.parametrize('origin, x_dir, y_dir, expected', [(np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0, 1, 0]), np.identity(4)),
+                                                            (np.array([0, 0, 0]), np.array([1, 0, 0]), np.array([0, 1, 0]), np.identity(4))])
+def test_projection_matrix_(origin, x_dir, y_dir, expected):
+    result = t.projection_matrix(origin, x_dir, y_dir)
+    np.testing.assert_allclose(result, expected)
