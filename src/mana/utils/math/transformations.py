@@ -218,24 +218,60 @@ def rotation_from_vectors(v_from: 'np.ndarray', v_to: 'np.ndarray') -> 'np.ndarr
     rotation_matrix = rotation(rotation_axis, alpha)
     return rotation_matrix
 
-def mat_mul_batch(m1, m2):
+def bmm_nxn(m1, m2):
     # TODO: Discuss and optimize with Christopher/Kristian.
-    """Returns an array of matrices or vectors that resulted from matrix multiplying m1 with m2.
+    # * Actually, this function is only a sanity check toi perform matrix multiplication via @ operator and should ensure that the computation actually equals a batchwise matrix multiplication.
+    """Returns an array of matrices that resulted from matrix multiplication between each matrix in m1 and m2.
 
-        Make sure to provide two numpy arrays with ndim = 3. If you want to transform vectors, add an arbitrary last dimension for each value. 
-        Example: a list of vectors like [[1,2,3], [1,2,3], ...] should be reshaped to [[[1],[2],[3]], [[1],[2],[3]], ...]
-        Arbitrary dimensions in the resulting list of matrices/vectors are removed with result.squeeze() for better handling.
+        m1 and m2 should be 3-D arrays (m1.ndim == 3 and m2.ndim == 3)
+        of same shape (m1.shape == m2.shape)
+        with same amount of rows and columns in each matrix (m1.shape[1] == m1.shape[2] and m2.shape[1] == m2.shape[2]).
 
     Args:
-        m1 (np.ndarray): An array of matrices.
-        m2 (np.ndarray): An array of matrices.
+        m1 (np.ndarray): An array of NxN matrices.
+        m2 (np.ndarray): An array of NxN matrices.
 
     """
     if m1.ndim != 3 or m2.ndim != 3:
-        raise ValueError('m1 and m2 dimensionality have to be 3. Use pythons "@" operator to perform a matrix multiplication for two single matrices.')
+        raise ValueError('m1 and m2 dimensionality have to be 3.')
     if m1.shape[0] != m2.shape[0]:
         raise ValueError('m1 and m2 have to contain the same number of matrices. (m1.shape[0] == m2.shape[0]).')
-    if m1.shape[2] != m2.shape[1]:
-        raise ValueError('Shapes of matrices in m1 and m2 have to fit for matrix multiplication. (m1[i].shape[1] == m2[i].shape[0])')
-    result = m1 @ m2
-    return result.squeeze()
+    if m1.shape != m2.shape:
+        raise ValueError('m1 and m2 should be of same shape (m1.shape == m2.shape).')
+    if (m1.shape[1] != m1.shape[2]) or (m2.shape[1] != m2.shape[2]):
+        raise ValueError('m1 and m2 should each contain the same number of rows and columns (m.shape[1] == m.shape[2]).')
+    return m1 @ m2
+
+def bmvm(m, v):
+    # TODO: Discuss and optimize with Christopher/Kristian.
+    # * Actually, this function is only a sanity check toi perform matrix multiplication via @ operator and should ensure that the computation actually equals a batchwise matrix multiplication.
+    """Returns an array of vectors that resulted from matrix-vector multiplication between each matrix in m and each vector in v.
+
+        m should be a 3-D array (m.ndim == 3) and v should be a 2-D array (v.ndim == 2).
+        m should contain matrices with same number of rows and columns (m.shape[1] == m.shape[2]). 
+        m and v should contain the same amount of matrices/vectors (m.shape[0] == v.shape[0]).
+        Number of rows in each matrix of m must be the same as columns in v (m.shape[2] == v.shape[1]).
+
+        For better ease of use, the array of vectors v must be two dimensional. 
+        However, for the actual computation a third arbitrary dimension is added to v that wraps each of its single values. 
+        This is needed to perform the batchwise matrix-vector multiplication as otherwise the list of vectors would be treated as a single matrix.
+        After processing, the arbitrary dimension is removed with np.squeeze() and the returned array of vectors is again 2-Dimensional.
+
+    Args:
+        m (np.ndarray): An array of matrices whose number of rows equals the number of columns (ndim = 3).
+        v (np.ndarray): An array of vectors whose number of elements equals the number rows in m[i].
+
+    """
+    if m.ndim != 3:
+        raise ValueError('m dimensionality has to be 3. (m.ndim == 3).')
+    if v.ndim != 2:
+        raise ValueError('v dimensionality has to be 2. (v.ndim == 2).')
+    if m.shape[0] != v.shape[0]:
+        raise ValueError('m and v have to contain the same number matrices/vectors. (m.shape[0] == v.shape[0]).')
+    if m.shape[1] != m.shape[2]:
+        raise ValueError('Each matrix in m should contain the same number of rows and columns (m.shape[1] == m.shape[2]).')
+    if m.shape[2] != v.shape[1]:
+        raise ValueError('Number of rows in each matrix of m must be the same as columns in v (m.shape[2] == v.shape[1]).')
+
+    # Add wrapping dimension for each element in v[i] -> matrix multiplication with @ operator -> remove arbitrary dimension
+    return (m @ v.reshape(v.shape[0], v.shape[1], -1)).squeeze()
