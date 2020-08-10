@@ -1,10 +1,9 @@
-"""Contains the code for the sequence model including the scenegraph and angle 
-computation."""
+"""A basic motion sequence."""
 import copy
 import numpy as np
 import math
 import cv2
-
+# TODO: Add OpenCV to Mana!
 # import mana.utils.math.normalizations as norm
 
 
