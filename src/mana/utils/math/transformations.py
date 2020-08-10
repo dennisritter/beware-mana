@@ -19,7 +19,7 @@ def norm_vec(v: 'np.ndarray') -> 'np.ndarray':
         raise ValueError('v must be either 1- or 2-dimensional')
 
     if v.ndim == 1:
-        vec_norm = np.linalg.norm_vec(v)
+        vec_norm = np.linalg.norm(v)
 
         # No zero division
         if vec_norm == 0:
