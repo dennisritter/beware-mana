@@ -40,6 +40,7 @@ class SequenceTransforms:
             X = Right
             Y = Front
             Z = Up
+        formal transform: [0, 1, 2] -> [-0, -2, 1]
         """
         # * MIR body part model
         # body_parts_mir = {
@@ -76,6 +77,7 @@ class SequenceTransforms:
             X = Right
             Y = Front
             Z = Up
+        formal transform: [0, 1, 2] -> [-0, -2, -1]
         """
         # * MKA body part model
         body_parts_mka = {
@@ -128,6 +130,7 @@ class SequenceTransforms:
             X = Right
             Y = Front
             Z = Up
+        formal transform [0, 1, 2] -> [-0, 2, 1]
         """
         # * HDM05 body part model
         # body_parts_hdm05 = {
@@ -163,4 +166,4 @@ class SequenceTransforms:
         #     'rfingers': 29,
         #     'rthumb': 30
         # }
-        return [swap_yz, flip_y]
+        return [swap_yz, flip_x]
