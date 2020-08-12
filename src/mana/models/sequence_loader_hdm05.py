@@ -9,8 +9,8 @@ class SequenceLoaderHDM05(ASequenceLoader):
     """A loader for Mocap Kinect Azure motion sequences.
 
     Attributes:
-        Transformer (Transformer): A transformer that holds transformations, that
-        are applied after loading a sequence.
+        Transformer (Transformer): A transformer that holds transformations, 
+        that are applied after loading a sequence.
     """
     ALLOWED_SEQUENCE_CLASSES = [Sequence]
 

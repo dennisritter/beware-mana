@@ -8,8 +8,8 @@ class ASequenceLoader(metaclass=ABCMeta):
     """An abstract loader class for specific sequence loaders.
 
     Attributes:
-        Transformer (Transformer): A transformer that holds transformations, that
-        are applied after loading a sequence.
+        Transformer (Transformer): A transformer that holds transformations, 
+        that are applied after loading a sequence.
     """
     def __init__(self, transformer):
         self.transformer = transformer

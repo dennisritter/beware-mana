@@ -167,8 +167,8 @@ class Sequence:
 
     #     if show_img:
     #         cv2.imshow(self.name, img)
-    #         print(f'Showing motion image from [{self.name}]. Press any key to '
-    #               'close the image and continue.')
+    #         print(f'Showing motion image from [{self.name}]. Press any key to'
+    #               ' close the image and continue.')
     #         cv2.waitKey(0)
     #         cv2.destroyAllWindows()
     #     return img
