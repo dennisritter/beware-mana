@@ -60,7 +60,7 @@ class SequenceTransforms:
         #     "RightShoulder": 14,
         #     "Head": 15
         # }
-        return [t.swap_yz, t.flip_x, t.flip_y]
+        return [t.SwapYZ, t.FlipX, t.FlipY]
 
     @staticmethod
     def mka_to_iisy():
@@ -113,7 +113,7 @@ class SequenceTransforms:
             "EyeRight": 30,
             "EarRight": 31
         }
-        return [t.swap_yz, t.flip_x, t.flip_y, t.flip_z]
+        return [t.SwapYZ, t.FlipX, t.FlipY, t.FlipZ]
 
     @staticmethod
     def hdm05_to_iisy():
@@ -165,4 +165,4 @@ class SequenceTransforms:
         #     'rfingers': 29,
         #     'rthumb': 30
         # }
-        return [t.swap_yz, t.flip_x]
+        return [t.SwapYZ, t.FlipX]
