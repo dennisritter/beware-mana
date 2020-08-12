@@ -2,7 +2,6 @@
 from mana.models.a_sequence_loader import ASequenceLoader
 import json
 import numpy as np
-# TODO: We need to import all allowed Sequence classes
 from mana.models.sequence import Sequence
 
 
@@ -56,42 +55,3 @@ class SequenceLoaderMKA(ASequenceLoader):
         sequence = self.sequence_class(positions, name, desc)
 
         return sequence
-
-        # TODO: Implement Transformations and apply them to mka sequences when loading
-        #! The Transformations to apply to transform coordinate system from MKA to IISY
-        # # MKA X points left -> target X points right
-        # # MKA Y points down -> target Y points front
-        # # MKA Z points backwards -> target Z points up
-        # # Switch Y/Z
-        # y_positions_mka = positions[:, :, 1].copy()
-        # z_positions_mka = positions[:, :, 2].copy()
-        # positions[:, :, 1] = z_positions_mka
-        # positions[:, :, 2] = y_positions_mka
-        # # Flip X
-        # positions[:, :, 0] *= -1
-        # # Flip Y
-        # positions[:, :, 1] *= -1
-        # # Flip Z
-        # positions[:, :, 2] *= -1
-
-        # # NOTE: Uncomment if you want to standardize the used joint positions
-        # # as in HMA
-        # # Change body part indices according to the target body part format
-        # # positions_mka = positions.copy()
-        # # positions[:, 0, :] = positions_mka[:, 26, :]  # "head": 0
-        # # positions[:, 1, :] = positions_mka[:, 3, :]  # "neck": 1
-        # # positions[:, 2, :] = positions_mka[:, 5, :]  # "shoulder_l": 2
-        # # positions[:, 3, :] = positions_mka[:, 12, :]  # "shoulder_r": 3
-        # # positions[:, 4, :] = positions_mka[:, 6, :]  # "elbow_l": 4
-        # # positions[:, 5, :] = positions_mka[:, 13, :]  # "elbow_r": 5
-        # # positions[:, 6, :] = positions_mka[:, 7, :]  # "wrist_l": 6
-        # # positions[:, 7, :] = positions_mka[:, 14, :]  # "wrist_r": 7
-        # # positions[:, 8, :] = positions_mka[:, 1, :]  # "torso": 8 -> SpineNavel
-        # # positions[:, 9, :] = positions_mka[:, 0, :]  # "pelvis": 9
-        # # positions[:, 10, :] = positions_mka[:, 18, :]  # "hip_l": 10
-        # # positions[:, 11, :] = positions_mka[:, 22, :]  # "hip_r": 11
-        # # positions[:, 12, :] = positions_mka[:, 19, :]  # "knee_l": 12
-        # # positions[:, 13, :] = positions_mka[:, 23, :]  # "knee_r": 13
-        # # positions[:, 14, :] = positions_mka[:, 20, :]  # "ankle_l": 14
-        # # positions[:, 15, :] = positions_mka[:, 24, :]  # "ankle_r": 15
-        # # positions = positions[:, :16]
