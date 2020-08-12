@@ -3,8 +3,8 @@
 import numpy as np
 
 
-class swap_xy:
-    def __call__(positions: 'np.ndarray'):
+class SwapXY:
+    def __call__(self, positions: 'np.ndarray'):
         """Returns the given positions after swapping x-values with y-values
         
         Args:
@@ -14,8 +14,8 @@ class swap_xy:
         return positions[:, :, [1, 0]]
 
 
-class swap_xz:
-    def __call__(positions: 'np.ndarray'):
+class SwapXZ:
+    def __call__(self, positions: 'np.ndarray'):
         """Returns the given positions after swapping x-values with z-values
         
         Args:
@@ -25,8 +25,8 @@ class swap_xz:
         return positions[:, :, [2, 0]]
 
 
-class swap_yz:
-    def __call__(positions: 'np.ndarray'):
+class SwapYZ:
+    def __call__(self, positions: 'np.ndarray'):
         """Returns the given positions after swapping y-values with z-values
         
         Args:
@@ -36,8 +36,8 @@ class swap_yz:
         return positions[:, :, [2, 1]]
 
 
-class flip_x:
-    def __call__(positions: 'np.ndarray'):
+class FlipX:
+    def __call__(self, positions: 'np.ndarray'):
         """Returns the given positions after flipping the x-axis 
         (negating all x-values).
         
@@ -48,8 +48,8 @@ class flip_x:
         return -positions[:, :, 0]
 
 
-class flip_y:
-    def __call__(positions: 'np.ndarray'):
+class FlipY:
+    def __call__(self, positions: 'np.ndarray'):
         """Returns the given positions after flipping the x-axis 
         (negating all y-values).
         
@@ -60,8 +60,8 @@ class flip_y:
         return -positions[:, :, 1]
 
 
-class flip_z:
-    def __call__(positions: 'np.ndarray'):
+class FlipZ:
+    def __call__(self, positions: 'np.ndarray'):
         """Returns the given positions after flipping the x-axis 
         (negating all y-values).
         
