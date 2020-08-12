@@ -11,7 +11,8 @@ class SwapXY:
             positions (np.ndarray): A time series of various 3-D positions 
             (ndim = 3) (shape = (n_frames, n_positions, 3))
         """
-        return positions[:, :, [1, 0]]
+        positions[:, :, [0, 1]] = positions[:, :, [1, 0]]
+        return positions
 
 
 class SwapXZ:
@@ -22,7 +23,8 @@ class SwapXZ:
             positions (np.ndarray): A time series of various 3-D positions 
             (ndim = 3) (shape = (n_frames, n_positions, 3))
         """
-        return positions[:, :, [2, 0]]
+        positions[:, :, [0, 2]] = positions[:, :, [2, 0]]
+        return positions
 
 
 class SwapYZ:
@@ -33,7 +35,8 @@ class SwapYZ:
             positions (np.ndarray): A time series of various 3-D positions 
             (ndim = 3) (shape = (n_frames, n_positions, 3))
         """
-        return positions[:, :, [2, 1]]
+        positions[:, :, [1, 2]] = positions[:, :, [2, 1]]
+        return positions
 
 
 class FlipX:
@@ -45,7 +48,8 @@ class FlipX:
             positions (np.ndarray): A time series of various 3-D positions 
             (ndim = 3) (shape = (n_frames, n_positions, 3))
         """
-        return -positions[:, :, 0]
+        positions[:, :, 0] = -positions[:, :, 0]
+        return positions
 
 
 class FlipY:
@@ -57,7 +61,8 @@ class FlipY:
             positions (np.ndarray): A time series of various 3-D positions 
             (ndim = 3) (shape = (n_frames, n_positions, 3))
         """
-        return -positions[:, :, 1]
+        positions[:, :, 1] = -positions[:, :, 1]
+        return positions
 
 
 class FlipZ:
@@ -69,7 +74,8 @@ class FlipZ:
             positions (np.ndarray): A time series of various 3-D positions 
             (ndim = 3) (shape = (n_frames, n_positions, 3))
         """
-        return -positions[:, :, 2]
+        positions[:, :, 2] = -positions[:, :, 2]
+        return positions
 
 
 ## Just a template for a transform with basic memory
