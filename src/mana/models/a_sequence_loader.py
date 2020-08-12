@@ -2,30 +2,31 @@
 from abc import ABC, ABCMeta, abstractmethod
 import numpy as np
 from mana.models.sequence import Sequence
+from mana.models.sequence_transforms import SequenceTransforms
 
 
 class ASequenceLoader(metaclass=ABCMeta):
     """An abstract loader class for specific sequence loaders.
 
     Attributes:
-        Transformer (Transformer): A transformer that holds transformations, 
-        that are applied after loading a sequence.
+        transforms (SequenceTransforms): A collection of transforms, that are 
+        applied after loading a sequence.
     """
-    def __init__(self, transformer):
-        self.transformer = transformer
+    def __init__(self, transforms: SequenceTransforms):
+        self.transforms = transforms
 
     @abstractmethod
     def load(self) -> Sequence:
         """Abstract method to load a Sequence from some arbitrary data format 
-        applying the transformations set in the given Transformer.
+        applying the transformations set in the transforms attribute.
         """
         pass
 
     def transform(self, positions: 'np.ndarray'):
-        """Transforms a sequence by applying the set transformations in a 
-        transformer.
+        """Transforms a sequence by applying the SequenceTransforms 
+        (a list of transforms) and returns the resulting positions.
         """
-        if self.transformer != None:
+        if self.transforms != None:
             if type(positions) is not np.ndarray:
                 raise ValueError(
                     f'The positions parameter should be a numpy.ndarray'
@@ -39,6 +40,6 @@ class ASequenceLoader(metaclass=ABCMeta):
                     f' should be 3 (shape[2] = 3) but it was '
                     f'{positions.shape[2]}.')
             trans_positions = positions
-            for transform in self.transformer.transforms:
+            for transform in self.transforms.transforms:
                 trans_positions = transform(positions)
             return trans_positions
