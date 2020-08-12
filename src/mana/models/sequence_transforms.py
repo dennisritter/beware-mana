@@ -1,6 +1,5 @@
 """A collection class for SequenceTransforms."""
-import mana.models.sequence_transform as t
-from mana.models.sequence_transform import flip_x, flip_y, flip_z, swap_yz
+import mana.utils.math.sequence_transform as t
 
 
 class SequenceTransforms:
@@ -61,7 +60,7 @@ class SequenceTransforms:
         #     "RightShoulder": 14,
         #     "Head": 15
         # }
-        return [t.swap_yz, flip_x, flip_y]
+        return [t.swap_yz, t.flip_x, t.flip_y]
 
     @staticmethod
     def mka_to_iisy():
@@ -114,7 +113,7 @@ class SequenceTransforms:
             "EyeRight": 30,
             "EarRight": 31
         }
-        return [swap_yz, flip_x, flip_y, flip_z]
+        return [t.swap_yz, t.flip_x, t.flip_y, t.flip_z]
 
     @staticmethod
     def hdm05_to_iisy():
@@ -166,4 +165,4 @@ class SequenceTransforms:
         #     'rfingers': 29,
         #     'rthumb': 30
         # }
-        return [swap_yz, flip_x]
+        return [t.swap_yz, t.flip_x]
