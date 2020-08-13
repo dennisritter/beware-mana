@@ -3,6 +3,7 @@ import mana.utils.math.sequence_transform as t
 
 
 class SequenceTransforms:
+    """A collection class for SequenceTransforms."""
     def __init__(self, transforms: list):
         self.transforms = transforms
 
@@ -29,9 +30,19 @@ class SequenceTransforms:
     def mir_to_iisy():
         """Returns a list of transforms that transform positions from the MIR
         coordinate system to the IISY coordinate system.
+
+        Note that the described coordinate system directions are described 
+        relative to the human actors viewing direction in the anatomical
+        normal position 
+        (https://en.wikipedia.org/wiki/Standard_anatomical_position).
+        Conseuqently, flipping and swapping axes may also flip the directions 
+        of other axes too. A solution to prevent this is: 
+        1. Flip all axes so that they point RIGHT, FRONT and BACK 
+        (or your targeted directions)
+        2. Swap necessary axes
         
         MIR Coordinate System:
-            X = Left
+            X = Right
             Y = Up
             Z = Back
         
@@ -39,7 +50,7 @@ class SequenceTransforms:
             X = Right
             Y = Front
             Z = Up
-        formal transform: [0, 1, 2] -> [-0, -2, 1]
+        formal transform: [0, 1, 2] -> [0, -2, 1]
         """
         # * MIR body part model
         # body_parts_mir = {
@@ -60,12 +71,22 @@ class SequenceTransforms:
         #     "RightShoulder": 14,
         #     "Head": 15
         # }
-        return [t.SwapYZ(), t.FlipX(), t.FlipY()]
+        return [t.FlipZ(), t.SwapYZ()]
 
     @staticmethod
     def mka_to_iisy():
         """Returns a list of transforms that transform positions from the MKA
         coordinate system to the IISY coordinate system.
+
+        Note that the described coordinate system directions are described 
+        relative to the human actors viewing direction in the anatomical
+        normal position 
+        (https://en.wikipedia.org/wiki/Standard_anatomical_position).
+        Conseuqently, flipping and swapping axes may also flip the directions 
+        of other axes too. A solution to prevent this is: 
+        1. Flip all axes so that they point RIGHT, FRONT and BACK 
+        (or your targeted directions)
+        2. Swap necessary axes
         
         MKA Coordinate System:
             X = Left
@@ -113,23 +134,38 @@ class SequenceTransforms:
             "EyeRight": 30,
             "EarRight": 31
         }
-        return [t.SwapYZ(), t.FlipX(), t.FlipY(), t.FlipZ()]
+        return [t.FlipX(), t.FlipY(), t.FlipZ(), t.SwapYZ()]
 
     @staticmethod
     def hdm05_to_iisy():
         """Returns a list of transforms that transform positions from the MKA
         coordinate system to the IISY coordinate system.
+
+        Note that the described coordinate system directions are described 
+        relative to the human actors viewing direction in the anatomical
+        normal position 
+        (https://en.wikipedia.org/wiki/Standard_anatomical_position).
+        Conseuqently, flipping and swapping axes may also flip the directions 
+        of other axes too. A solution to prevent this is: 
+        1. Flip all axes so that they point RIGHT, FRONT and BACK 
+        (or your targeted directions)
+        2. Swap necessary axes
         
         HDM05 Coordinate System:
-            X = Left
-            Y = Up
-            Z = Front
+            Original (hdm05 specification):
+                X = Left
+                Y = Up
+                Z = Front
+            After Loading with acm_asf_parser:
+                X = Right
+                Y = Up
+                Z = Back
         
         IISY Coordinate System:
             X = Right
             Y = Front
             Z = Up
-        formal transform [0, 1, 2] -> [-0, 2, 1]
+        formal transform [0, 1, 2] -> [0, -2, 1]
         """
         # * HDM05 body part model
         # body_parts_hdm05 = {
@@ -165,4 +201,4 @@ class SequenceTransforms:
         #     'rfingers': 29,
         #     'rthumb': 30
         # }
-        return [t.SwapYZ(), t.FlipX()]
+        return [t.FlipZ(), t.SwapYZ()]
