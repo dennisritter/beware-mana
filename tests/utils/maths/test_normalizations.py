@@ -79,9 +79,10 @@ import mana.utils.math.normalizations as n
     ],
 )
 def test_pose_mean(var, mean, expected):
-    """Tests if the (combined) mean for all frames is computed and subtracted accordingly."""
+    """Tests if the (combined) mean for all frames is computed and subtracted
+    accordingly."""
     # using pytest approx to avoid floating point arithmetic issues
-    pytest.approx(n.pose_mean(var, mean) == expected)
+    assert pytest.approx(n.pose_mean(var, mean) == expected)
 
 
 @pytest.mark.parametrize(
@@ -144,3 +145,72 @@ def test_pose_position(var, pos, expected):
     """Tests if the positions for all frames will be translated by the given
     vector or array of vectors."""
     assert (n.pose_position(var, pos) == expected).all()
+
+
+@pytest.mark.parametrize(
+    'var, rotation_vectors, orthonogal_vector, origin_vector, expected',
+    [
+        (
+            np.array([[2, 3, 2], [4, 1, 2], [2, 2, 3]]),
+            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([0, 1, 0]),
+            np.array([0, 0, 0]),
+            np.array([[1.19, 3.41, 2], [3.63, 1.97, 2], [1.44, 2.44, 3]]),
+        ),  # origin rotation
+        (
+            np.array([[2, 3, 2], [4, 1, 2], [2, 2, 3]]),
+            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([0, 1, 0]),
+            np.array([2, 3, 2]),
+            np.array([[2, 3, 2], [4.44, 1.56, 2], [2.25, 2.03, 3]]),
+        ),  # inplace rotation -> different origin
+        (
+            np.array([[2, 3, 2], [4, 1, 2], [2, 2, 3]]),
+            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([0, 0, 1]),
+            np.array([0, 0, 0]),
+            np.array([[2, 3, 2], [4, 1, 2], [2, 2, 3]]),
+        ),  # xy plane -> different normal vector
+        (
+            np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
+                      [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
+            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([0, 1, 0]),
+            np.array([0, 0, 0]),
+            np.array([[[1.19, 3.41, 2], [3.64, 1.97, 2], [1.44, 2.44, 3]],
+                      [[2.41, 2.69, 2], [2.66, 1.72, 3], [0.22, 3.16, 2]]]),
+        ),  # 2 frames -> apply first rotation to all
+        (
+            np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
+                      [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
+            np.array([[[2, 3, 2], [4, 1, 2]], [[3, 2, 2], [3, 1, 3]]]),
+            np.array([0, 1, 0]),
+            np.array([0, 0, 0]),
+            np.array([[[1.19, 3.41, 2], [3.64, 1.97, 2], [1.44, 2.44, 3]],
+                      [[-2, 3, 2], [-1, 3, 3], [-3, 1, 2]]]),
+        ),  # 2 frames 2 rotation -> compute and apply rotation to each
+        (
+            np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
+                      [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
+            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([[0, 1, 0], [0, 1, 0]]),
+            np.array([0, 0, 0]),
+            np.array([[[1.19, 3.41, 2], [3.64, 1.97, 2], [1.44, 2.44, 3]],
+                      [[2.41, 2.69, 2], [2.66, 1.72, 3], [0.22, 3.16, 2]]]),
+        ),  # 2 frames 2 orthogonal
+        (
+            np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
+                      [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
+            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([0, 1, 0]),
+            np.array([[0, 0, 0], [0, 0, 0]]),
+            np.array([[[1.19, 3.41, 2], [3.64, 1.97, 2], [1.44, 2.44, 3]],
+                      [[2.41, 2.69, 2], [2.66, 1.72, 3], [0.22, 3.16, 2]]]),
+        ),  # 2 frames 2 origin
+    ])
+def test_pose_orientation(var, rotation_vectors, orthonogal_vector,
+                          origin_vector, expected):
+    """Tests if the positions will be rotated toward the plane of the given
+    orthogonal vector."""
+    assert (n.pose_orientation(var, rotation_vectors, orthonogal_vector,
+                               origin_vector) == expected).all()

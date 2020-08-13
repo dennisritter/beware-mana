@@ -67,3 +67,39 @@ def pose_position(array: np.ndarray, position: np.ndarray) -> np.ndarray:
     else:
         raise ValueError(
             'Position array must match the input arrays number of axis!')
+
+
+def pose_orientation(array: np.ndarray, rotation_vectors: np.ndarray,
+                     orthogonal_vectors: np.ndarray,
+                     origin_vectors: np.ndarray) -> np.ndarray:
+    """Rotates all positions towards a defined plane.
+
+    The rotation will be computed based on the given rotation point vectors, by
+    subtracting one from the other. The rotation angle results based on this
+    new vector compared to the orthogonal vector. Rotation will then be applied
+    around the given origin vector.
+
+    Args:
+        array (np.ndarray): The input array of dimensionality =3.
+            Where the first dimension = number of frames,
+            the second lst dimension = number of positions,
+            and the last dimension = number of axis.
+        rotation_vectors (np.ndarray): Array consisting of two point vectors.
+            Array can either contain two vectors or a list of two vectors with
+            size = number of input frames. The first vector will be subtracted
+            by the second.
+        orthogonal_vectors (np.ndarray): The orthogonal vector of the plane
+            where the array should be rotated to. Can either contain a
+            3-dimensional vector or a list of 3-d vectors with size = number of
+            input frames.
+        origin_vectors (np.ndarray): The vector to rotate around. Can either
+            contain a 3-dimensional vector or a list of 3-d vectors with size
+            = number of input frames.
+
+    Returns:
+        np.ndarray: The array rotated to the plane.
+
+    Raises:
+        ValueError: ... TODO
+    """
+    raise NotImplementedError
