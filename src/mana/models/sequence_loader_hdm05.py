@@ -1,7 +1,7 @@
 """An abstract loader class for specific sequence loaders."""
 from mana.models.a_sequence_loader import ASequenceLoader
 import numpy as np
-import mana.acm_asf_parser.amc_parser as amc_asf_parser
+import acm_asf_parser.amc_parser as amc_asf_parser
 from mana.models.sequence import Sequence
 from mana.models.sequence_transforms import SequenceTransforms
 
@@ -56,5 +56,6 @@ class SequenceLoaderHDM05(ASequenceLoader):
                 [joints[joint].coordinate for joint in joints.keys()])
         positions = np.array(positions).squeeze()
 
+        positions = super().transform(positions)
         sequence = self.sequence_class(positions, name=name, desc=desc)
         return sequence
