@@ -3,25 +3,31 @@ from mana.models.a_sequence_loader import ASequenceLoader
 import json
 import numpy as np
 from mana.models.sequence import Sequence
+from mana.models.sequence_transforms import SequenceTransforms
 
 
 class SequenceLoaderMKA(ASequenceLoader):
     """A loader for Mocap Kinect Azure motion sequences.
 
     Attributes:
-        Transformer (Transformer): A transformer that holds transformations, 
-        that are applied after loading a sequence.
+        transforms (SequenceTransforms): A SequenceTransforms instance that 
+        holds transformations, that are applied after loading a sequence
+        (default = None).
+        sequence_class (class): A class that is inherited from Sequence or the
+        Sequence itself (default = Sequence).
     """
     ALLOWED_SEQUENCE_CLASSES = [Sequence]
 
-    def __init__(self, transformer, sequence_class):
+    def __init__(self,
+                 transforms: SequenceTransforms = None,
+                 sequence_class=Sequence):
         if sequence_class not in SequenceLoaderMKA.ALLOWED_SEQUENCE_CLASSES:
             raise ValueError(
                 f'This DataLoader is not abled to load instances of '
                 f'sequence_class {sequence_class}. \nAllowed sequence_classes '
                 f'are {SequenceLoaderMKA.ALLOWED_SEQUENCE_CLASSES}.')
         self.sequence_class = sequence_class
-        super().__init__(transformer)
+        super().__init__(transforms)
 
     def load(self,
              path: str = None,

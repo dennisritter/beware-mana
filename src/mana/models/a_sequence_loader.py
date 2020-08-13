@@ -9,10 +9,11 @@ class ASequenceLoader(metaclass=ABCMeta):
     """An abstract loader class for specific sequence loaders.
 
     Attributes:
-        transforms (SequenceTransforms): A collection of transforms, that are 
-        applied after loading a sequence.
+        transforms (SequenceTransforms): A SequenceTransforms instance that 
+        holds transformations, that are applied after loading a sequence
+        (default = None).
     """
-    def __init__(self, transforms: SequenceTransforms):
+    def __init__(self, transforms: SequenceTransforms = None):
         self.transforms = transforms
 
     @abstractmethod
@@ -26,7 +27,9 @@ class ASequenceLoader(metaclass=ABCMeta):
         """Transforms a sequence by applying the SequenceTransforms 
         (a list of transforms) and returns the resulting positions.
         """
-        if self.transforms != None:
+        if not self.transforms:
+            return positions
+        else:
             if type(positions) is not np.ndarray:
                 raise ValueError(
                     f'The positions parameter should be a numpy.ndarray'
