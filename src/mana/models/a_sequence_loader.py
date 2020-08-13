@@ -24,8 +24,13 @@ class ASequenceLoader(metaclass=ABCMeta):
         pass
 
     def transform(self, positions: 'np.ndarray'):
-        """Transforms a sequence by applying the SequenceTransforms 
-        (a list of transforms) and returns the resulting positions.
+        """Transforms a sequence by consecutively applying the 
+        SequenceTransforms stored in self.transforms (a list of transforms) and 
+        returns the resulting positions.
+
+        Note that each transform in self.transforms affects the transforms 
+        after it as the output of a transform is the input of the next 
+        transform.
         """
         if not self.transforms:
             return positions
