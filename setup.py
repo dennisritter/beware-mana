@@ -14,7 +14,9 @@ setuptools.setup(
     url="https://gitlab.beuth-hochschule.de/iisy/mana",
     package_dir={'': 'src'},
     packages=setuptools.find_packages(where='src'),
-    install_requires=['numpy', 'scikit-learn'],
+    install_requires=[
+        'numpy', 'scikit-learn', 'plotly>=4.9', 'chart-studio>=1', 'kaleido'
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
