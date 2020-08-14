@@ -52,6 +52,29 @@ def angle(
     return np.arccos(np.clip(dot(norm_vec(v1), norm_vec(v2)), 0.0, 1.0))
 
 
+def angle_complementary(
+        v1: np.ndarray,
+        v2: np.ndarray) -> Union[float, np.float64, np.float32, np.ndarray]:
+    """Returns the complementary angle (radians) to the angle between vectors
+    v1, v2 if single vectors are given (v1,v2 ndim == 1) or an array of angles
+    (radians).
+
+    Args:
+        v1 (Union[float, np.ndarray]): A 3-D vector or an array of such vectors.
+        v2 (Union[float, np.ndarray]): A 3-D vector or an array of such vectors.
+    """
+    if not isinstance(v1, np.ndarray) or not isinstance(v2, np.ndarray):
+        raise ValueError('v1 and v2 must both be of type numpy.ndarray')
+    if v1.ndim != v2.ndim or v1.ndim > 2:
+        raise ValueError('v1 and v2 must both be either 1- or 2-dimensional')
+    # * The dot product of two equal vectors will result in a minor rounding
+    # * error (dot(norm([1,1,1])) =
+    # * dot([0.57735027, 0.57735027, 0.57735027]) = 1.0000000000000002)
+    # * As np.arccos can only handle values from 0.0 to 1.0 (inclusive),
+    # * we clamp the result to this range, too.
+    return np.arcsin(np.clip(dot(norm_vec(v1), norm_vec(v2)), 0.0, 1.0))
+
+
 def dot(v1: 'np.ndarray', v2: 'np.ndarray'):
     """Returns the dot product between v1 and v2 (v1,v2 ndim == 1).
        Returns an array of dot products between respective vectors in v1 and v2 
