@@ -1,7 +1,8 @@
-import pytest
-import mana.utils.math.transformations as t
-import numpy as np
+"""Unittests for transformation functions."""
 import math
+import pytest
+import numpy as np
+import mana.utils.math.transformations as t
 
 
 def test_norm_vec_zero_vec():
@@ -313,15 +314,18 @@ def test_transformation_no_translation(rotation, translation, expected):
 
 
 @pytest.mark.parametrize('rotation, translation, expected', [(
-    np.array([[
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-    ], [
-        [11, 22, 33],
-        [44, 55, 66],
-        [77, 88, 99],
-    ]]),
+    np.array([
+        [
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9],
+        ],
+        [
+            [11, 22, 33],
+            [44, 55, 66],
+            [77, 88, 99],
+        ],
+    ]),
     np.array([
         [0, 0, 0],
         [6, 15, 24],
@@ -395,7 +399,7 @@ def test_orthogonal_vector_single_parallel(v1, v2, expected):
 ])
 def test_orthogonal_vector_multi(v1, v2, expected):
     """Test whether multiple orthogonal vectors are calculated correctly at
-    once. 
+    once.
     """
     result = t.orthogonal_vector(v1, v2)
     np.testing.assert_allclose(result, expected, atol=1e-07, verbose=True)
