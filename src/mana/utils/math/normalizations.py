@@ -1,6 +1,8 @@
 """Contains the normalization methods for transforming positions in space."""
 import numpy as np
 
+import mana.utils.math.transformations as mt
+
 
 def pose_mean(array: np.ndarray, mean_array: np.ndarray = None) -> np.ndarray:
     """Computes the mean of the frame(s) and subtracts it.
@@ -54,7 +56,7 @@ def pose_position(array: np.ndarray, position: np.ndarray) -> np.ndarray:
         np.ndarray: The array translated to the specified origin.
 
     Raises:
-        ValueError: if array is not of dimensionalty = 3
+        ValueError: if array is not of dimensionalty = 3.
         ValueErrof: if position dimensionality does not match number of input
             arry axis.
     """
@@ -100,6 +102,52 @@ def pose_orientation(array: np.ndarray, rotation_vectors: np.ndarray,
         np.ndarray: The array rotated to the plane.
 
     Raises:
-        ValueError: ... TODO
+        ValueError: if input array is not of dimensionality = 3.
+        ValueError: if list of rotation, orthogonal or origin vectors are not
+            of size 1 or of size equal to input array frames.
     """
-    raise NotImplementedError
+    if array.ndim != 3:
+        raise ValueError('Input array must be of dimensionality = 3!')
+    frames = array.shape[0]
+
+    if rotation_vectors.ndim == 2:
+        rotation_vectors = np.expand_dims(rotation_vectors, 0)
+    if rotation_vectors.ndim == 3 and (rotation_vectors.shape[0] != 1
+                                       and rotation_vectors.shape[0] != frames):
+        raise ValueError('Rotation vectors must contain two vectors or number \
+                          of frames times two vectors!')
+
+    if orthogonal_vectors.ndim == 1:
+        orthogonal_vectors = np.expand_dims(orthogonal_vectors, 0)
+    if orthogonal_vectors.ndim == 2 and (orthogonal_vectors.shape[0] != 1 and
+                                         orthogonal_vectors.shape[0] != frames):
+        raise ValueError('Orthogonal vectors must contain only one vector or \
+                          number of frames times one vector!')
+
+    if origin_vectors.ndim == 1:
+        origin_vectors = np.expand_dims(origin_vectors, 0)
+    if origin_vectors.ndim == 2 and (origin_vectors.shape[0] != 1
+                                     and origin_vectors.shape[0] != frames):
+        raise ValueError('Origin vectors must contain only one vector or \
+                          number of frames times one vector!')
+
+    # compute pose vectors as difference between rotation vectos
+    pose_vectors = rotation_vectors[:, 0] - rotation_vectors[:, 1]
+
+    # compute rotation angle based on pose vectors and plane orthogonals
+    alphas = mt.angle_complementary(pose_vectors, orthogonal_vectors)
+
+    # compute rotation axis from pose vector and orthogonals
+    # TODO: ref to vectorization if orthogonal vector supports it
+    # axises = np.abs(mt.orthogonal_vector(pose_vectors, orthogonal_vectors))
+    axises = np.array([
+        np.abs(mt.orthogonal_vector(pose_vector, orthogonal))
+        for pose_vector, orthogonal in zip(pose_vectors, orthogonal_vectors)
+    ])
+
+    # create rotation matrix around axis
+    rotations = mt.rotation(axises, alphas)
+
+    # apply rotation matrix to vector and return
+    # therefore we need to transpose the input arrays
+    return np.transpose(rotations @ np.transpose(array, (0, 2, 1)), (0, 2, 1))
