@@ -1,5 +1,5 @@
 """An abstract loader class for specific sequence loaders."""
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod
 import numpy as np
 from mana.models.sequence import Sequence
 from mana.models.sequence_transforms import SequenceTransforms
@@ -9,7 +9,7 @@ class ASequenceLoader(metaclass=ABCMeta):
     """An abstract loader class for specific sequence loaders.
 
     Attributes:
-        transforms (SequenceTransforms): A SequenceTransforms instance that 
+        transforms (SequenceTransforms): A SequenceTransforms instance that
         holds transformations, that are applied after loading a sequence
         (default = None).
     """
@@ -18,24 +18,23 @@ class ASequenceLoader(metaclass=ABCMeta):
 
     @abstractmethod
     def load(self) -> Sequence:
-        """Abstract method to load a Sequence from some arbitrary data format 
+        """Abstract method to load a Sequence from some arbitrary data format
         applying the transformations set in the transforms attribute.
         """
-        pass
 
-    def transform(self, positions: 'np.ndarray'):
-        """Transforms a sequence by consecutively applying the 
-        SequenceTransforms stored in self.transforms (a list of transforms) and 
+    def transform(self, positions: np.ndarray):
+        """Transforms a sequence by consecutively applying the
+        SequenceTransforms stored in self.transforms (a list of transforms) and
         returns the resulting positions.
 
-        Note that each transform in self.transforms affects the transforms 
-        after it as the output of a transform is the input of the next 
+        Note that each transform in self.transforms affects the transforms
+        after it as the output of a transform is the input of the next
         transform.
         """
         if not self.transforms:
             return positions
         else:
-            if type(positions) is not np.ndarray:
+            if not isinstance(positions, np.ndarray):
                 raise ValueError(
                     f'The positions parameter should be a numpy.ndarray'
                     f' but it was a {type(positions)}')

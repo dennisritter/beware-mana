@@ -31,21 +31,21 @@ class SequenceTransforms:
         """Returns a list of transforms that transform positions from the MIR
         coordinate system to the IISY coordinate system.
 
-        Note that the described coordinate system directions are described 
+        Note that the described coordinate system directions are described
         relative to the human actors viewing direction in the anatomical
-        normal position 
+        normal position
         (https://en.wikipedia.org/wiki/Standard_anatomical_position).
-        Conseuqently, flipping and swapping axes may also flip the directions 
-        of other axes too. A solution to prevent this is: 
-        1. Flip all axes so that they point RIGHT, FRONT and BACK 
+        Conseuqently, flipping and swapping axes may also flip the directions
+        of other axes too. A solution to prevent this is:
+        1. Flip all axes so that they point RIGHT, FRONT and BACK
         (or your targeted directions)
         2. Swap necessary axes
-        
+
         MIR Coordinate System:
             X = Right
             Y = Up
             Z = Back
-        
+
         IISY Coordinate System:
             X = Right
             Y = Front
@@ -78,21 +78,21 @@ class SequenceTransforms:
         """Returns a list of transforms that transform positions from the MKA
         coordinate system to the IISY coordinate system.
 
-        Note that the described coordinate system directions are described 
+        Note that the described coordinate system directions are described
         relative to the human actors viewing direction in the anatomical
-        normal position 
+        normal position
         (https://en.wikipedia.org/wiki/Standard_anatomical_position).
-        Conseuqently, flipping and swapping axes may also flip the directions 
-        of other axes too. A solution to prevent this is: 
-        1. Flip all axes so that they point RIGHT, FRONT and BACK 
+        Conseuqently, flipping and swapping axes may also flip the directions
+        of other axes too. A solution to prevent this is:
+        1. Flip all axes so that they point RIGHT, FRONT and BACK
         (or your targeted directions)
         2. Swap necessary axes
-        
+
         MKA Coordinate System:
             X = Left
             Y = Down
             Z = Back
-        
+
         IISY Coordinate System:
             X = Right
             Y = Front
@@ -100,40 +100,40 @@ class SequenceTransforms:
         formal transform: [0, 1, 2] -> [-0, -2, -1]
         """
         # * MKA body part model
-        body_parts_mka = {
-            "Pelvis": 0,
-            "SpineNavel": 1,
-            "SpineChest ": 2,
-            "Neck": 3,
-            "ClavicleLeft": 4,
-            "ShoulderLeft": 5,
-            "ElbowLeft ": 6,
-            "WristLeft ": 7,
-            "HandLeft ": 8,
-            "HandTipLeft": 9,
-            "ThumbLeft": 10,
-            "ClavicleRight": 11,
-            "ShoulderRight": 12,
-            "ElbowRight": 13,
-            "WristRight": 14,
-            "HandRight": 15,
-            "HandTipRight": 16,
-            "ThumbRight": 17,
-            "HipLeft": 18,
-            "KneeLeft": 19,
-            "AnkleLeft": 20,
-            "FootLeft": 21,
-            "HipRight": 22,
-            "KneeRight": 23,
-            "AnkleRight": 24,
-            "FootRight": 25,
-            "Head": 26,
-            "Nose": 27,
-            "EyeLeft": 28,
-            "EarLeft": 29,
-            "EyeRight": 30,
-            "EarRight": 31
-        }
+        # body_parts_mka = {
+        #     "Pelvis": 0,
+        #     "SpineNavel": 1,
+        #     "SpineChest ": 2,
+        #     "Neck": 3,
+        #     "ClavicleLeft": 4,
+        #     "ShoulderLeft": 5,
+        #     "ElbowLeft ": 6,
+        #     "WristLeft ": 7,
+        #     "HandLeft ": 8,
+        #     "HandTipLeft": 9,
+        #     "ThumbLeft": 10,
+        #     "ClavicleRight": 11,
+        #     "ShoulderRight": 12,
+        #     "ElbowRight": 13,
+        #     "WristRight": 14,
+        #     "HandRight": 15,
+        #     "HandTipRight": 16,
+        #     "ThumbRight": 17,
+        #     "HipLeft": 18,
+        #     "KneeLeft": 19,
+        #     "AnkleLeft": 20,
+        #     "FootLeft": 21,
+        #     "HipRight": 22,
+        #     "KneeRight": 23,
+        #     "AnkleRight": 24,
+        #     "FootRight": 25,
+        #     "Head": 26,
+        #     "Nose": 27,
+        #     "EyeLeft": 28,
+        #     "EarLeft": 29,
+        #     "EyeRight": 30,
+        #     "EarRight": 31
+        # }
         return [t.FlipX(), t.FlipY(), t.FlipZ(), t.SwapYZ()]
 
     @staticmethod
@@ -141,16 +141,16 @@ class SequenceTransforms:
         """Returns a list of transforms that transform positions from the MKA
         coordinate system to the IISY coordinate system.
 
-        Note that the described coordinate system directions are described 
+        Note that the described coordinate system directions are described
         relative to the human actors viewing direction in the anatomical
-        normal position 
+        normal position
         (https://en.wikipedia.org/wiki/Standard_anatomical_position).
-        Conseuqently, flipping and swapping axes may also flip the directions 
-        of other axes too. A solution to prevent this is: 
-        1. Flip all axes so that they point RIGHT, FRONT and BACK 
+        Conseuqently, flipping and swapping axes may also flip the directions
+        of other axes too. A solution to prevent this is:
+        1. Flip all axes so that they point RIGHT, FRONT and BACK
         (or your targeted directions)
         2. Swap necessary axes
-        
+
         HDM05 Coordinate System:
             Original (hdm05 specification):
                 X = Left
@@ -160,7 +160,7 @@ class SequenceTransforms:
                 X = Right
                 Y = Up
                 Z = Back
-        
+
         IISY Coordinate System:
             X = Right
             Y = Front

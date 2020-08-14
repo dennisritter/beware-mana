@@ -1,16 +1,16 @@
 """An abstract loader class for specific sequence loaders."""
-from mana.models.a_sequence_loader import ASequenceLoader
 import numpy as np
-import acm_asf_parser.amc_parser as amc_asf_parser
+from mana.models.a_sequence_loader import ASequenceLoader
 from mana.models.sequence import Sequence
 from mana.models.sequence_transforms import SequenceTransforms
+import acm_asf_parser.amc_parser as amc_asf_parser
 
 
 class SequenceLoaderHDM05(ASequenceLoader):
     """A loader for Mocap Kinect Azure motion sequences.
 
     Attributes:
-        transforms (SequenceTransforms): A SequenceTransforms instance that 
+        transforms (SequenceTransforms): A SequenceTransforms instance that
         holds transformations, that are applied after loading a sequence
         (default = None).
         sequence_class (class): A class that is inherited from Sequence or the
@@ -29,15 +29,16 @@ class SequenceLoaderHDM05(ASequenceLoader):
         self.sequence_class = sequence_class
         super().__init__(transforms)
 
-    def load(self,
-             asf_path: str,
-             amc_path: str,
-             name: str = 'Sequence HDM05',
-             desc=None) -> Sequence:
+    def load(  # pylint: disable=arguments-differ
+            self,
+            asf_path: str,
+            amc_path: str,
+            name: str = 'Sequence HDM05',
+            desc=None) -> Sequence:
         """Returns a sequence loaded from HDM05 amc and asf files.
 
         Args:
-            asf_path (str): Path to the asf file. Includes available Joints and 
+            asf_path (str): Path to the asf file. Includes available Joints and
             hierarchy.
             amc_path (str): Path to the amc file. Includes motions.
         """
@@ -50,10 +51,9 @@ class SequenceLoaderHDM05(ASequenceLoader):
         motions = amc_asf_parser.parse_amc(amc_path)
 
         positions = []
-        for frame in range(len(motions)):
+        for _, frame in enumerate(motions):
             joints['root'].set_motion(motions[frame])
-            positions.append(
-                [joints[joint].coordinate for joint in joints.keys()])
+            positions.append([joints[joint].coordinate for joint in joints])
         positions = np.array(positions).squeeze()
 
         positions = super().transform(positions)

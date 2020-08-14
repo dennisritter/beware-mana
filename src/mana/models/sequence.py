@@ -1,7 +1,7 @@
 """A basic motion sequence."""
+import math
 import copy
 import numpy as np
-import math
 # TODO: Add OpenCV to Mana!
 # import cv2
 
@@ -36,19 +36,19 @@ class Sequence:
 
     def __len__(self) -> int:
         """Returns the length of this sequence, which is defined by the length
-        of the positions attribute. 
-        
-        The sequence's length is basically the number of frames the sequence 
+        of the positions attribute.
+
+        The sequence's length is basically the number of frames the sequence
         contains.
         """
         return len(self.positions)
 
     def __getitem__(self, item) -> 'Sequence':
-        """Returns the sub-sequence item. You can either specifiy one element 
+        """Returns the sub-sequence item. You can either specifiy one element
         by index or use numpy-like slicing.
 
         Args:
-            item (int/slice): Defines a particular frame or slice from all 
+            item (int/slice): Defines a particular frame or slice from all
             frames of this sequence.
 
         Raises NotImplementedError if index is given as tuple.
@@ -72,8 +72,8 @@ class Sequence:
     def append(self, sequence) -> 'Sequence':
         """Returns a sequence where the given sequence is concatenated to self.
 
-        Raises ValueError if shapes of the positions property do not fit 
-        together. 
+        Raises ValueError if shapes of the positions property do not fit
+        together.
         """
         if (self.positions.shape[1] != sequence.positions.shape[1]
                 or self.positions.shape[2] != sequence.positions.shape[2]):
@@ -92,14 +92,14 @@ class Sequence:
         return self
 
     def split(self, overlap: float = 0.0, subseq_size: int = 1) -> list:
-        """ Splits this sequence into batches of specified size and with 
-        defined overlap to each other. Returns a consecutive list of sequences 
-        with length of the given size. 
-        
+        """ Splits this sequence into batches of specified size and with
+        defined overlap to each other. Returns a consecutive list of sequences
+        with length of the given size.
+
             Args:
-                overlap (float) = 0.0: How much of a batch overlaps neighboured 
+                overlap (float) = 0.0: How much of a batch overlaps neighboured
                 batches.
-                subseq_size (int) = 1: The size of the batches. 
+                subseq_size (int) = 1: The size of the batches.
         """
         if overlap < 0.0 or overlap > 0.99:
             raise ValueError(
@@ -175,7 +175,7 @@ class Sequence:
 
     # ? Should this function stay here?
     def _filter_zero_frames(self, positions: np.ndarray) -> list:
-        """Returns a filter mask list to filter frames where all positions 
+        """Returns a filter mask list to filter frames where all positions
         equal 0.0.
 
         Checks whether all coordinates for a frame are 0.0
@@ -183,7 +183,7 @@ class Sequence:
             False -> remove this frame
 
         Args:
-            positions (np.ndarray): The positions to filter 
+            positions (np.ndarray): The positions to filter
             "Zero-Position-Frames" from.
 
         Returns:

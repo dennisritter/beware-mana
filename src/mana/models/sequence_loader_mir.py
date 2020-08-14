@@ -1,16 +1,16 @@
 """An abstract loader class for specific sequence loaders."""
-from mana.models.a_sequence_loader import ASequenceLoader
 import json
 import numpy as np
 from mana.models.sequence import Sequence
 from mana.models.sequence_transforms import SequenceTransforms
+from mana.models.a_sequence_loader import ASequenceLoader
 
 
 class SequenceLoaderMIR(ASequenceLoader):
     """A loader for Mocap Kinect Azure motion sequences.
 
     Attributes:
-        transforms (SequenceTransforms): A SequenceTransforms instance that 
+        transforms (SequenceTransforms): A SequenceTransforms instance that
         holds transformations, that are applied after loading a sequence
         (default = None).
         sequence_class (class): A class that is inherited from Sequence or the
@@ -29,13 +29,14 @@ class SequenceLoaderMIR(ASequenceLoader):
         self.sequence_class = sequence_class
         super().__init__(transforms)
 
-    def load(self,
-             path: str = None,
-             json_str: str = None,
-             name: str = 'Sequence MIR',
-             desc=None) -> Sequence:
-        """Returns a sequence represented by a MIR json file or a MIR json 
-        string
+    def load(  # pylint: disable=arguments-differ
+            self,
+            path: str = None,
+            json_str: str = None,
+            name: str = 'Sequence MIR',
+            desc=None) -> Sequence:
+        """Returns a sequence represented by a MIR json file or a MIR json
+        string.
 
         Args:
             path (str): Path to a json file representing a MIR sequence.
@@ -44,9 +45,9 @@ class SequenceLoaderMIR(ASequenceLoader):
             desc (str): The description of the returned sequence.
         """
         if not json_str and not path:
-            raise ValueError(f'The load method expects either a file path to '
+            raise ValueError('The load method expects either a file path to '
                              'a json file or a json string.')
-        elif not json_str and path:
+        if not json_str and path:
             with open(path, 'r') as sequence_file:
                 json_str = sequence_file.read()
         json_data = json.loads(json_str)
