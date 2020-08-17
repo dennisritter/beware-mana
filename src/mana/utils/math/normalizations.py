@@ -64,11 +64,12 @@ def pose_position(array: np.ndarray, position: np.ndarray) -> np.ndarray:
     if not array.ndim == 3:
         raise ValueError('Array need to have three dimensions!')
 
-    if position.shape[-1] == array.shape[-1]:
-        return array - np.expand_dims(position, -2)
-    else:
+    if not position.shape[-1] == array.shape[-1]:
         raise ValueError(
             'Position array must match the input arrays number of axis!')
+    
+    return array - np.expand_dims(position, -2)
+
 
 
 def pose_orientation(array: np.ndarray, rotation_vectors: np.ndarray,
