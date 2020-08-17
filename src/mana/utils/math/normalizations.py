@@ -12,7 +12,7 @@ def pose_mean(array: np.ndarray, mean_array: np.ndarray = None) -> np.ndarray:
     Args:
         array (np.ndarray): The input array of abritary dimensionality = 3.
             Where the first dimension = number of frames,
-            the second lst dimension = number of positions,
+            the second dimension = number of positions,
             and the last dimension = number of axis.
         mean_array (np.ndarray): The vector to compute the mean and subtract it
             from the input array. Number of axis must match the input array.
@@ -44,7 +44,7 @@ def pose_position(array: np.ndarray, position: np.ndarray) -> np.ndarray:
     Args:
         array (np.ndarray): The input array of dimensionality =3.
             Where the first dimension = number of frames,
-            the second lst dimension = number of positions,
+            the second dimension = number of positions,
             and the last dimension = number of axis.
         position (np.ndarray): The vector to translate all positions to.
             Number of axis must match the input array. Can be either a
@@ -67,9 +67,8 @@ def pose_position(array: np.ndarray, position: np.ndarray) -> np.ndarray:
     if not position.shape[-1] == array.shape[-1]:
         raise ValueError(
             'Position array must match the input arrays number of axis!')
-    
-    return array - np.expand_dims(position, -2)
 
+    return array - np.expand_dims(position, -2)
 
 
 def pose_orientation(array: np.ndarray, rotation_vectors: np.ndarray,
@@ -85,7 +84,7 @@ def pose_orientation(array: np.ndarray, rotation_vectors: np.ndarray,
     Args:
         array (np.ndarray): The input array of dimensionality =3.
             Where the first dimension = number of frames,
-            the second lst dimension = number of positions,
+            the second dimension = number of positions,
             and the last dimension = number of axis.
         rotation_vectors (np.ndarray): Array consisting of two point vectors.
             Array can either contain two vectors or a list of two vectors with
@@ -111,28 +110,34 @@ def pose_orientation(array: np.ndarray, rotation_vectors: np.ndarray,
         raise ValueError('Input array must be of dimensionality = 3!')
     frames = array.shape[0]
 
-    if rotation_vectors.ndim == 2:
-        rotation_vectors = np.expand_dims(rotation_vectors, 0)
-    if rotation_vectors.ndim == 3 and (rotation_vectors.shape[0] != 1
-                                       and rotation_vectors.shape[0] != frames):
+    if rotation_vectors.ndim != 2 or rotation_vectors.ndim != 3:
+        raise ValueError('Rotation vectors must be a 2 or 3 dimensional numpy '
+                         'array')
+    if rotation_vectors.shape[0] not in [1, frames]:
         raise ValueError('Rotation vectors must contain two vectors or number \
                           of frames times two vectors!')
+    if rotation_vectors.ndim == 2:
+        rotation_vectors = np.expand_dims(rotation_vectors, 0)
 
-    if orthogonal_vectors.ndim == 1:
-        orthogonal_vectors = np.expand_dims(orthogonal_vectors, 0)
-    if orthogonal_vectors.ndim == 2 and (orthogonal_vectors.shape[0] != 1 and
-                                         orthogonal_vectors.shape[0] != frames):
+    if orthogonal_vectors.ndim != 1 or orthogonal_vectors.ndim != 2:
+        raise ValueError(
+            'Orthogonal vectors must be a 1 or 2 dimensional numpy array')
+    if orthogonal_vectors.shape[0] not in [1, frames]:
         raise ValueError('Orthogonal vectors must contain only one vector or \
                           number of frames times one vector!')
+    if orthogonal_vectors.ndim == 1:
+        orthogonal_vectors = np.expand_dims(orthogonal_vectors, 0)
 
-    if origin_vectors.ndim == 1:
-        origin_vectors = np.expand_dims(origin_vectors, 0)
-    if origin_vectors.ndim == 2 and (origin_vectors.shape[0] != 1
-                                     and origin_vectors.shape[0] != frames):
+    if origin_vectors.ndim != 1 or orthogonal_vectors.ndim != 2:
+        raise ValueError(
+            'Origin vectors must be a 1 or 2 dimensional numpy array')
+    if origin_vectors.shape[0] not in [1, frames]:
         raise ValueError('Origin vectors must contain only one vector or \
                           number of frames times one vector!')
+    if origin_vectors.ndim == 1:
+        origin_vectors = np.expand_dims(origin_vectors, 0)
 
-    # compute pose vectors as difference between rotation vectos
+    # compute pose vectors as difference between rotation vectors
     pose_vectors = rotation_vectors[:, 0] - rotation_vectors[:, 1]
 
     # compute rotation angle based on pose vectors and plane orthogonals
@@ -140,14 +145,14 @@ def pose_orientation(array: np.ndarray, rotation_vectors: np.ndarray,
 
     # compute rotation axis from pose vector and orthogonals
     # TODO: ref to vectorization if orthogonal vector supports it
-    # axises = np.abs(mt.orthogonal_vector(pose_vectors, orthogonal_vectors))
-    axises = np.array([
+    # axes = np.abs(mt.orthogonal_vector(pose_vectors, orthogonal_vectors))
+    axes = np.array([
         np.abs(mt.orthogonal_vector(pose_vector, orthogonal))
         for pose_vector, orthogonal in zip(pose_vectors, orthogonal_vectors)
     ])
 
-    # create rotation matrix around axis
-    rotations = mt.rotation(axises, alphas)
+    # create rotation matrix about axis
+    rotations = mt.rotation(axes, alphas)
 
     # apply rotation matrix to vector and return
     # therefore we need to transpose the input arrays
