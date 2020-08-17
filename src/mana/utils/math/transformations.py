@@ -26,8 +26,8 @@ def norm_vec(v: np.ndarray) -> np.ndarray:
         if vec_norm == 0:
             return np.zeros(len(v))
         return v / vec_norm
-    if v.ndim == 2:
-        return preprocessing.normalize(v, norm='l2')
+
+    return preprocessing.normalize(v, norm='l2')
 
 
 def angle(v1: np.ndarray,
@@ -68,8 +68,8 @@ def dot(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
 
     if v1.ndim == 1 and v2.ndim == 1:
         return np.dot(v1, v2)
-    if v1.ndim == 2 and v2.ndim == 2:
-        return (v1 @ v2.transpose()).diagonal()
+
+    return (v1 @ v2.transpose()).diagonal()
 
 
 def v3_to_v4(v: np.ndarray) -> np.ndarray:
@@ -86,8 +86,8 @@ def v3_to_v4(v: np.ndarray) -> np.ndarray:
 
     if v.ndim == 1:
         return np.append(v, 1)
-    elif v.ndim == 2:
-        return np.hstack((v, np.ones(len(v)).reshape((len(v), 1))))
+
+    return np.hstack((v, np.ones(len(v)).reshape((len(v), 1))))
 
 
 def rotation(
@@ -176,13 +176,13 @@ def transformation(rotations: np.ndarray = None,
         transformations = np.concatenate((transformations, h.reshape(1, -1)),
                                          axis=0)
         return transformations
-    if rotations.ndim == 3 and translations.ndim == 2:
-        translations = translations.reshape(len(translations), -1, 1)
-        transformations = np.concatenate((rotations, translations), axis=2)
-        # Add a dimension to h to be able to concatenate
-        h = np.full((len(transformations), 1, 4), h.reshape(-1, 1, 4))
-        transformations = np.concatenate((transformations, h), axis=1)
-        return transformations
+
+    translations = translations.reshape(len(translations), -1, 1)
+    transformations = np.concatenate((rotations, translations), axis=2)
+    # Add a dimension to h to be able to concatenate
+    h = np.full((len(transformations), 1, 4), h.reshape(-1, 1, 4))
+    transformations = np.concatenate((transformations, h), axis=1)
+    return transformations
 
 
 def orthogonal_vector(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
@@ -214,16 +214,15 @@ def orthogonal_vector(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
             return orthogonal_vector(np.random.rand(3), v2)
         return norm_vec(np.cross(v1, v2))
 
-    if v1.ndim == 2 and v2.ndim == 2:
-        v_perpendicular = norm_vec(np.cross(v1, v2))
-        parallels = np.where((np.isclose(v1dotv2, -1))
-                             | (np.isclose(v1dotv2, 1)))[0]
-        # For all parallel v1/v2 pairs, reassign v1 with a random vector and
-        # check if its parallel, again.
-        for idx in parallels:
-            v_perpendicular[idx] = orthogonal_vector(np.random.rand(3), v2[idx])
+    v_perpendicular = norm_vec(np.cross(v1, v2))
+    parallels = np.where((np.isclose(v1dotv2, -1))
+                         | (np.isclose(v1dotv2, 1)))[0]
+    # For all parallel v1/v2 pairs, reassign v1 with a random vector and
+    # check if its parallel, again.
+    for idx in parallels:
+        v_perpendicular[idx] = orthogonal_vector(np.random.rand(3), v2[idx])
 
-        return v_perpendicular
+    return v_perpendicular
 
 
 def rotation_from_vectors(v_from: np.ndarray, v_to: np.ndarray) -> np.ndarray:
