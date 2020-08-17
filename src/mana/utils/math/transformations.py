@@ -11,8 +11,8 @@ def norm_vec(v: np.ndarray) -> np.ndarray:
     array of normalized vectors.
 
     Args:
-        vec_arr (np.ndarray): Either a 1-D array that represents the vector to
-        normalize or a 2-D array containing the vectors to normalize.
+        v (np.ndarray): Either a 1-D array that represents the vector to
+            normalize or a 2-D array containing the vectors to normalize.
     """
     if not isinstance(v, np.ndarray):
         raise ValueError('v must be of type numpy.ndarray')
@@ -36,8 +36,8 @@ def angle(v1: np.ndarray,
     are given (v1,v2 ndim == 1) or an array of angles (radians).
 
     Args:
-        v1 (Union[float, np.ndarray]): A 3-D vector or an array of such vectors.
-        v2 (Union[float, np.ndarray]): A 3-D vector or an array of such vectors.
+        v1 (np.ndarray): A 3-D vector or an array of such vectors.
+        v2 (np.ndarray): A 3-D vector or an array of such vectors.
     """
     if not isinstance(v1, np.ndarray) or not isinstance(v2, np.ndarray):
         raise ValueError('v1 and v2 must both be of type numpy.ndarray')
@@ -98,10 +98,10 @@ def rotation(
     for the given angle alpha (radians) or an array of such rotations.
 
     Args:
-        axis (np.ndarray): A 3-D (ndim=3) vector that describes the axis to
-        rotate about or an array of such vectors.
+        axis (np.ndarray): A 3-D (ndim == 3) vector that describes the axis to
+            rotate about or an array of such vectors.
         alpha (Union[float, np.ndarray]): The angle to rotate for in radians or
-        an array of such angles.
+            an array of such angles.
     """
     if not isinstance(axis, np.ndarray):
         raise ValueError('axis must be of type numpy.ndarray')
@@ -145,9 +145,9 @@ def transformation(rotations: np.ndarray = None,
 
     Args:
         rotations (np.ndarray): A 3x3 rotation matrix or an array of matrices.
-        (default=np.array([[1,0,0],[0,1,0],[0,0,1]]))
+            (default=np.array([[1,0,0],[0,1,0],[0,0,1]]))
         translation (np.ndarray): A 3-D translation vector or an array of such
-        vectors. (default=np.zeros(3))
+            vectors. (default=np.zeros(3))
     """
     if rotations is None:
         rotations = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
@@ -165,8 +165,8 @@ def transformation(rotations: np.ndarray = None,
         raise ValueError('translation must be either 1- or 2-dimensional '
                          '(v.ndim == 1|2)')
     if rotations.ndim != translations.ndim + 1:
-        raise ValueError('rotation (ndim=2|3) must have one more dimension '
-                         'than translation (ndim=1|2)')
+        raise ValueError('rotation (ndim == 2|3) must have one more dimension '
+                         'than translation (ndim == 1|2)')
 
     h = np.array([0, 0, 0, 1])
     if rotations.ndim == 2 and translations.ndim == 1:
@@ -186,14 +186,14 @@ def transformation(rotations: np.ndarray = None,
 
 
 def orthogonal_vector(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
-    """Returns a vector that is orthogonal to v1 and v2 or an array of such
-    vectors that are orthogonal to each pair of vectors in v1 and v2.
+    """Returns a normalized vector that is orthogonal to v1 and v2 or an array
+    of such vectors that are orthogonal to each pair of vectors in v1 and v2.
 
     Args:
         vec1 (np.ndarray): Vector one, which is orthogonal to the returned
-        vector or an array of such vectors.
+            vector or an array of such vectors.
         vec2 (np.ndarray): Vector two, which is orthogonal to the returned
-        vector or an array of such vectors.
+            vector or an array of such vectors.
     """
     if not isinstance(v1, np.ndarray) or not isinstance(v2, np.ndarray):
         raise ValueError('v1 and v2 must be of type numpy.ndarray')
@@ -201,7 +201,7 @@ def orthogonal_vector(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
         raise ValueError('v1 and v2 have to share the same shapes')
     if v1.ndim > 2 or v2.ndim > 2:
         raise ValueError('v1 and v2 must be either 1- or 2-dimensional v.ndim '
-                         '== 1|2)')
+                         '== 1|2')
 
     v1 = norm_vec(v1)
     v2 = norm_vec(v2)
@@ -232,10 +232,10 @@ def rotation_from_vectors(v_from: np.ndarray, v_to: np.ndarray) -> np.ndarray:
 
     Args:
         v_from (np.ndarray): A 3-D vector that defines the starting direction or
-        an array of such vectors.
+            an array of such vectors.
         v_to (np.ndarray): A 3-D vector that defines the direction v_from points
-        to after it has been rotated by the returned rotation or an array of
-        such vectors.
+            to after it has been rotated by the returned rotation or an array of
+            such vectors.
     """
     if not isinstance(v_from, np.ndarray) or not isinstance(v_to, np.ndarray):
         raise ValueError('v_from and v_to must be of type numpy.ndarray')
@@ -310,9 +310,9 @@ def bmvm(m: np.ndarray, v: np.ndarray) -> np.ndarray:
 
     Args:
         m (np.ndarray): An array of matrices whose number of rows equals the
-        number of columns (ndim = 3).
+            number of columns (ndim = 3).
         v (np.ndarray): An array of vectors whose number of elements equals the
-        number rows in m[i].
+            number rows in m[i].
     """
     if not isinstance(m, np.ndarray) or not isinstance(v, np.ndarray):
         raise ValueError('m and v must be of type numpy.ndarray')
@@ -352,12 +352,12 @@ def projection_matrix(origin: np.ndarray, x_dir: np.ndarray,
 
     Args:
         origin (np.ndarray): The position related to the parent coordinate
-        system that defines the origin of the child coordinate system.
-        (ndim = 1, shape = (3))
+            system that defines the origin of the child coordinate system.
+            (ndim == 1, shape == (3))
         x_dir (np.ndarray): The direction related to the parent coordinate
-        system that defines the x axis. (ndim = 1, shape = (3))
+            system that defines the x axis. (ndim == 1, shape == (3))
         y_dir (np.ndarray): The direction related to the parent coordinate
-        system that defines the y axis. (ndim = 1, shape = (3))
+            system that defines the y axis. (ndim == 1, shape == (3))
     """
     if not isinstance(origin, np.ndarray) or not isinstance(
             x_dir, np.ndarray) or not isinstance(y_dir, np.ndarray):
