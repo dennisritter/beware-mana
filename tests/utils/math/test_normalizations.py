@@ -148,26 +148,29 @@ def test_pose_position(var, pos, expected):
 
 
 @pytest.mark.parametrize(
-    'var, rotation_vectors, orthonogal_vector, origin_vector, expected',
+    'var, rotation_vectors, orthogonal_vectors, origin_vector, expected',
     [
         (
             np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]]]),
-            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([-2, 2, 0]),
             np.array([0, 1, 0]),
             np.array([0, 0, 0]),
-            np.array([[-0.07071, 3.5355, 2], [2.1213, 3.5355, 2],
-                      [0, 2.8284, 3]]),
+            np.array([
+                [-0.07071, 3.5355, 2],
+                [2.1213, 3.5355, 2],
+                [0, 2.8284, 3],
+            ]),
         ),  # origin rotation
         (
             np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]]]),
-            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([-2, 2, 0]),
             np.array([0, 1, 0]),
             np.array([2, 3, 2]),
             np.array([[2, 3, 2], [4.8284, 3, 2], [2.7071, 2.8929, 3]]),
         ),  # inplace rotation -> different origin
         (
             np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]]]),
-            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([-2, 2, 0]),
             np.array([0, 0, 1]),
             np.array([0, 0, 0]),
             np.array([[2, 3, 2], [4, 1, 2], [2, 2, 3]]),
@@ -175,52 +178,72 @@ def test_pose_position(var, pos, expected):
         (
             np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
                       [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
-            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([-2, 2, 0]),
             np.array([0, 1, 0]),
             np.array([0, 0, 0]),
-            np.array([[[-0.07071, 3.5355, 2], [2.1213, 3.5355, 2], [
-                0, 2.8284, 3
-            ]], [[0.7071, 3.5355, 2], [1.4142, 2.8284, 3], [-1.4142, 2.8284, 2]]
-                      ]),
+            np.array([[
+                [-0.07071, 3.5355, 2],
+                [2.1213, 3.5355, 2],
+                [0, 2.8284, 3],
+            ], [
+                [0.7071, 3.5355, 2],
+                [1.4142, 2.8284, 3],
+                [-1.4142, 2.8284, 2],
+            ]]),
         ),  # 2 frames -> apply first rotation to all
         (
             np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
                       [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
-            np.array([[[2, 3, 2], [4, 1, 2]], [[3, 2, 2], [3, 1, 3]]]),
+            np.array([[-2, 2, 0], [0, 1, -1]]),
             np.array([0, 1, 0]),
             np.array([0, 0, 0]),
-            np.array([[[-0.07071, 3.5355, 2], [2.1213, 3.5355, 2], [
-                0, 2.8284, 3
-            ]], [[0.7071, 3.5355, 2], [1.4142, 2.8284, 3], [-1.4142, 2.8284, 2]]
-                      ]),
+            np.array([[
+                [-0.07071, 3.5355, 2],
+                [2.1213, 3.5355, 2],
+                [0, 2.8284, 3],
+            ], [
+                [0.7071, 3.5355, 2],
+                [1.4142, 2.8284, 3],
+                [-1.4142, 2.8284, 2],
+            ]]),
         ),  # 2 frames 2 rotation -> compute and apply rotation to each
         (
             np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
                       [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
-            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([[-2, 2, 0], [0, 1, -1]]),
             np.array([[0, 1, 0], [0, 1, 0]]),
             np.array([0, 0, 0]),
-            np.array([[[-0.07071, 3.5355, 2], [2.1213, 3.5355, 2], [
-                0, 2.8284, 3
-            ]], [[0.7071, 3.5355, 2], [1.4142, 2.8284, 3], [-1.4142, 2.8284, 2]]
-                      ]),
+            np.array([[
+                [-0.07071, 3.5355, 2],
+                [2.1213, 3.5355, 2],
+                [0, 2.8284, 3],
+            ], [
+                [0.7071, 3.5355, 2],
+                [1.4142, 2.8284, 3],
+                [-1.4142, 2.8284, 2],
+            ]]),
         ),  # 2 frames 2 orthogonal
         (
             np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
                       [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
-            np.array([[2, 3, 2], [4, 1, 2]]),
+            np.array([-2, 2, 0]),
             np.array([0, 1, 0]),
             np.array([[0, 0, 0], [0, 0, 0]]),
-            np.array([[[-0.07071, 3.5355, 2], [2.1213, 3.5355, 2], [
-                0, 2.8284, 3
-            ]], [[0.7071, 3.5355, 2], [1.4142, 2.8284, 3], [-1.4142, 2.8284, 2]]
-                      ]),
+            np.array([[
+                [-0.07071, 3.5355, 2],
+                [2.1213, 3.5355, 2],
+                [0, 2.8284, 3],
+            ], [
+                [0.7071, 3.5355, 2],
+                [1.4142, 2.8284, 3],
+                [-1.4142, 2.8284, 2],
+            ]]),
         ),  # 2 frames 2 origin
     ])
-def test_pose_orientation(var, rotation_vectors, orthonogal_vector,
+def test_pose_orientation(var, rotation_vectors, orthogonal_vectors,
                           origin_vector, expected):
     """Tests if the positions will be rotated toward the plane of the given
     orthogonal vector."""
     assert pytest.approx(
-        n.pose_orientation(var, rotation_vectors, orthonogal_vector,
+        n.pose_orientation(var, rotation_vectors, orthogonal_vectors,
                            origin_vector) == expected)
