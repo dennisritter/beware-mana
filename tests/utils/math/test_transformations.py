@@ -1,13 +1,14 @@
 """Unittests for transformation functions."""
 import math
-import pytest
+
 import numpy as np
+import pytest
+
 import mana.utils.math.transformations as t
 
 
 def test_norm_vec_zero_vec():
-    """Test whether a zero vector returns a zero vector.
-    """
+    """Test whether a zero vector returns a zero vector."""
     zero_vector = np.zeros(3)
     result = t.norm_vec(zero_vector)
     assert np.array_equal(result,
@@ -15,8 +16,7 @@ def test_norm_vec_zero_vec():
 
 
 def test_norm_vec_unit_vec():
-    """Test whether a unit vector returns a unit vector.
-    """
+    """Test whether a unit vector returns a unit vector."""
     unit_vector = np.array([1, 0, 0])
     result = t.norm_vec(unit_vector)
     assert np.array_equal(result,
@@ -32,15 +32,13 @@ def test_norm_vec_unit_vec():
 
 
 def test_norm_vec_vec():
-    """Test whether some vector is normalized correctly.
-    """
+    """Test whether some vector is normalized correctly."""
     result = t.norm_vec(np.array([3, 4, 0]))
     assert np.array_equal(result, np.array([0.6, 0.8, 0.0]))
 
 
 def test_norm_vec_batch():
-    """Test whether an array of vectors is normalized correctly.
-    """
+    """Test whether an array of vectors is normalized correctly."""
     result = t.norm_vec(np.array([[0, 0, 0], [1, 0, 0], [3, 4, 0]]))
     assert np.array_equal(
         result, np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.6, 0.8, 0.0]]))
@@ -52,8 +50,7 @@ def test_norm_vec_batch():
      (np.array([1, 0, 0]), np.array([0, 1, 0]), math.pi / 2),
      (np.array([1, 0, 0]), np.array([1, 1, 0]), math.pi / 4)])
 def test_angle_single(v1, v2, expected):
-    """Test whether a single angle is calculated correctly.
-    """
+    """Test whether a single angle is calculated correctly."""
     assert t.angle(v1, v2) == pytest.approx(expected)
 
 
@@ -62,13 +59,8 @@ def test_angle_single(v1, v2, expected):
                            np.array([[1, 1, 1], [0, 1, 0], [1, 1, 0]]),
                            np.array([0.0, math.pi / 2, math.pi / 4]))])
 def test_angle_batch(v1, v2, expected):
-    """Test whether multiple angles are calculated correctly at once.
-    """
-    result = t.angle(v1, v2)
-    # Can't assert with pyterst.approx in array of vectors
-    assert result[0] == pytest.approx(expected[0])
-    assert result[1] == pytest.approx(expected[1])
-    assert result[2] == pytest.approx(expected[2])
+    """Test whether multiple angles are calculated correctly at once."""
+    assert t.angle(v1, v2) == pytest.approx(expected)
 
 
 @pytest.mark.parametrize(
@@ -94,11 +86,7 @@ def test_dot_batch(v1, v2, expected):
     """Test whether  the dor product between multiple pairs of vectors is
     calculated correctly at once.
     """
-    # Can't assert with pyterst.approx in array of vectors
-    result = t.dot(t.norm_vec(v1), t.norm_vec(v2))
-    assert result[0] == pytest.approx(expected[0])
-    assert result[1] == pytest.approx(expected[1])
-    assert result[2] == pytest.approx(expected[2])
+    assert t.dot(t.norm_vec(v1), t.norm_vec(v2)) == pytest.approx(expected)
 
 
 @pytest.mark.parametrize('v, expected',
@@ -122,18 +110,16 @@ def test_v3_to_v4_batch(v, expected):
     assert t.v3_to_v4(v) == pytest.approx(expected)
 
 
-@pytest.mark.parametrize(
-    'axis, alpha, expected',
-    [(
-        np.array([1.0, 0.0, 0.0]),
-        math.pi / 2,
-        np.array([
-            [1.0, 0.0, 0.0],
-            [0.0, np.cos(math.pi / 2), -np.sin(math.pi / 2)],
-            [0.0, np.sin(math.pi / 2),
-             np.cos(math.pi / 2)],  # ? Why is YAPF breaking this line?!
-        ]),
-    )])
+@pytest.mark.parametrize('axis, alpha, expected', [(
+    np.array([1.0, 0.0, 0.0]),
+    math.pi / 2,
+    np.array([
+        [1.0, 0.0, 0.0],
+        [0.0, np.cos(math.pi / 2), -np.sin(math.pi / 2)],
+        [0.0, np.sin(math.pi / 2),
+         np.cos(math.pi / 2)],
+    ]),
+)])
 def test_rotation_single(axis, alpha, expected):
     """Test whether a rotation about the x-axis returns the correct rotation
     matrix.
@@ -213,8 +199,7 @@ def test_rotation_single(axis, alpha, expected):
      ])),
 ])
 def test_rotation_batch(axis, alpha, expected):
-    """Test whether multiple rotation matrices are calculated at once.
-    """
+    """Test whether multiple rotation matrices are calculated at once."""
     result = t.rotation(axis, alpha)
     np.testing.assert_allclose(result, expected, atol=1e-07, verbose=True)
 
@@ -346,8 +331,7 @@ def test_transformation_no_translation(rotation, translation, expected):
     ]),
 )])
 def test_transformation_batch(rotation, translation, expected):
-    """Test whether multiple translations are constructed correctly at once.
-    """
+    """Test whether multiple translations are constructed correctly at once."""
     result = t.transformation(rotation, translation)
     np.testing.assert_array_equal(result, expected, verbose=True)
 
@@ -451,15 +435,18 @@ def test_rotation_from_vectors_single(v_from, v_to, expected):
                                verbose=True)
 
 
-@pytest.mark.parametrize('v_from, v_to, expected', [(
-    np.array([1, 1, 1]),
-    np.array([1, 1, 1]),
-    np.identity(3),
-), (
-    np.array([1, 2, 3]),
-    np.array([1, 2, 3]),
-    np.identity(3),
-)])
+@pytest.mark.parametrize('v_from, v_to, expected', [
+    (
+        np.array([1, 1, 1]),
+        np.array([1, 1, 1]),
+        np.identity(3),
+    ),
+    (
+        np.array([1, 2, 3]),
+        np.array([1, 2, 3]),
+        np.identity(3),
+    ),
+])
 def test_rotation_from_vectors_single_equals(v_from, v_to, expected):
     """Test whether the rotation matrix from two equal vectors is the identity
     matrix of same shape. (No rotation)
@@ -480,10 +467,7 @@ def test_rotation_from_vectors_multi(v_from, v_to, expected):
     """
     result = t.rotation_from_vectors(v_from, v_to)
     np.testing.assert_allclose(
-        np.array([
-            t.norm_vec(v_from[idx]) @ result[idx]
-            for idx, _ in enumerate(result)
-        ]),
+        np.array([t.norm_vec(v) @ r for v, r in zip(v_from, result)]),
         t.norm_vec(expected),
         atol=1e-7,
         verbose=True,
@@ -542,8 +526,7 @@ def test_rotation_from_vectors_multi_equals(v_from, v_to, expected):
     ]),
 )])
 def test_bmm_3x3(m1, m2, expected):
-    """Test whether multiple 3x3 matrices are multipled correctly at once.
-    """
+    """Test whether multiple 3x3 matrices are multipled correctly at once."""
     result = t.bmm(m1, m2)
     np.testing.assert_array_equal(result, expected)
 
@@ -593,27 +576,28 @@ def test_bmm_3x3(m1, m2, expected):
     ]),
 )])
 def test_bmm_4x4(m1, m2, expected):
-    """Test whether multiple 4x4 matrices are multipled correctly at once.
-    """
+    """Test whether multiple 4x4 matrices are multipled correctly at once."""
     result = t.bmm(m1, m2)
     np.testing.assert_array_equal(result, expected)
 
 
-@pytest.mark.parametrize('m, v, expected', [(np.array([[
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9],
-], [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9],
-]]), np.array([
-    [1, 1, 1],
-    [1, 2, 3],
-]), np.array([
-    [6, 15, 24],
-    [14, 32, 50],
-]))])
+@pytest.mark.parametrize('m, v, expected', [
+    (np.array([[
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+    ], [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+    ]]), np.array([
+        [1, 1, 1],
+        [1, 2, 3],
+    ]), np.array([
+        [6, 15, 24],
+        [14, 32, 50],
+    ])),
+])
 def test_bmvm_3x3(m, v, expected):
     """Test whether multiple 3x3 matrices are multipled with 3d-vectors
     correctly at once.
@@ -622,23 +606,25 @@ def test_bmvm_3x3(m, v, expected):
     np.testing.assert_array_equal(result, expected)
 
 
-@pytest.mark.parametrize('m, v, expected', [(np.array([[
-    [1, 2, 3, 0],
-    [4, 5, 6, 0],
-    [7, 8, 9, 0],
-    [0, 0, 0, 1],
-], [
-    [1, 2, 3, 0],
-    [4, 5, 6, 0],
-    [7, 8, 9, 0],
-    [0, 0, 0, 1],
-]]), np.array([
-    [1, 1, 1, 1],
-    [1, 2, 3, 1],
-]), np.array([
-    [6, 15, 24, 1],
-    [14, 32, 50, 1],
-]))])
+@pytest.mark.parametrize('m, v, expected', [
+    (np.array([[
+        [1, 2, 3, 0],
+        [4, 5, 6, 0],
+        [7, 8, 9, 0],
+        [0, 0, 0, 1],
+    ], [
+        [1, 2, 3, 0],
+        [4, 5, 6, 0],
+        [7, 8, 9, 0],
+        [0, 0, 0, 1],
+    ]]), np.array([
+        [1, 1, 1, 1],
+        [1, 2, 3, 1],
+    ]), np.array([
+        [6, 15, 24, 1],
+        [14, 32, 50, 1],
+    ])),
+])
 def test_bmvm_4x4(m, v, expected):
     """Test whether multiple 4x4 matrices are multipled with 3d-vectors
     correctly at once.
