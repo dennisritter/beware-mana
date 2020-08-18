@@ -148,7 +148,7 @@ def test_pose_position(var, pos, expected):
 
 
 @pytest.mark.parametrize(
-    'var, rotation_vectors, orthogonal_vectors, origin_vector, expected',
+    'var, rotation_vectors, plane_normals, origins, expected',
     [
         (
             np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]]]),
@@ -240,10 +240,10 @@ def test_pose_position(var, pos, expected):
             ]]),
         ),  # 2 frames 2 origin
     ])
-def test_pose_orientation(var, rotation_vectors, orthogonal_vectors,
-                          origin_vector, expected):
+def test_pose_orientation(var, rotation_vectors, plane_normals, origins,
+                          expected):
     """Tests if the positions will be rotated toward the plane of the given
-    orthogonal vector."""
+    plane normal."""
     assert pytest.approx(
-        n.pose_orientation(var, rotation_vectors, orthogonal_vectors,
-                           origin_vector) == expected)
+        n.pose_orientation(var, rotation_vectors, plane_normals, origins) ==
+        expected)
