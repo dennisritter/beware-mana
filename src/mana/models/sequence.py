@@ -2,8 +2,7 @@
 import math
 import copy
 import numpy as np
-# TODO: Add OpenCV to Mana!
-# import cv2
+import cv2
 
 
 class Sequence:
@@ -123,55 +122,54 @@ class Sequence:
             seq.name = f'{seq.name}__batch-{i}'
         return seqs
 
-    # TODO: Add OpenCV to Mana before adding this function to Sequence class
-    # def to_motionimg(
-    #         self,
-    #         output_size=(256, 256),
-    #         minmax_pos_x=(-1000, 1000),
-    #         minmax_pos_y=(-1000, 1000),
-    #         minmax_pos_z=(-1000, 1000),
-    #         show_img=False,
-    # ) -> np.ndarray:
-    #     """ Returns a Motion Image, that represents this sequences' positions.
+    def to_motionimg(
+            self,
+            output_size=(256, 256),
+            minmax_pos_x=(-1000, 1000),
+            minmax_pos_y=(-1000, 1000),
+            minmax_pos_z=(-1000, 1000),
+            show_img=False,
+    ) -> np.ndarray:
+        """ Returns a Motion Image, that represents this sequences' positions.
 
-    #         Creates an Image from 3-D position data of motion sequences.
-    #         Rows represent a body part (or some arbitrary position instance).
-    #         Columns represent a frame of the sequence.
+            Creates an Image from 3-D position data of motion sequences.
+            Rows represent a body part (or some arbitrary position instance).
+            Columns represent a frame of the sequence.
 
-    #         Args:
-    #             output_size (int, int): The size of the output image in pixels
-    #             (height, width). Default=(200,200)
-    #             minmax_pos_x (int, int): The minimum and maximum x-positions.
-    #             Mapped to color range (0, 255).
-    #             minmax_pos_y (int, int): The minimum and maximum y-positions.
-    #             Mapped to color range (0, 255).
-    #             minmax_pos_z (int, int): The minimum and maximum z-positions.
-    #             Mapped to color range (0, 255).
-    #     """
-    #     # Create Image container
-    #     img = np.zeros((len(self.positions[0, :]), len(self.positions), 3),
-    #                    dtype='uint8')
-    #     # 1. Map (min_pos, max_pos) range to (0, 255) Color range.
-    #     # 2. Swap Axes of and frames(0) body parts(1) so rows represent body
-    #     # parts and cols represent frames.
-    #     img[:, :, 0] = np.interp(self.positions[:, :, 0],
-    #                              [minmax_pos_x[0], minmax_pos_x[1]],
-    #                              [0, 255]).swapaxes(0, 1)
-    #     img[:, :, 1] = np.interp(self.positions[:, :, 1],
-    #                              [minmax_pos_y[0], minmax_pos_y[1]],
-    #                              [0, 255]).swapaxes(0, 1)
-    #     img[:, :, 2] = np.interp(self.positions[:, :, 2],
-    #                              [minmax_pos_z[0], minmax_pos_z[1]],
-    #                              [0, 255]).swapaxes(0, 1)
-    #     img = cv2.resize(img, output_size)
+            Args:
+                output_size (int, int): The size of the output image in pixels
+                (height, width). Default=(200,200)
+                minmax_pos_x (int, int): The minimum and maximum x-positions.
+                Mapped to color range (0, 255).
+                minmax_pos_y (int, int): The minimum and maximum y-positions.
+                Mapped to color range (0, 255).
+                minmax_pos_z (int, int): The minimum and maximum z-positions.
+                Mapped to color range (0, 255).
+        """
+        # Create Image container
+        img = np.zeros((len(self.positions[0, :]), len(self.positions), 3),
+                       dtype='uint8')
+        # 1. Map (min_pos, max_pos) range to (0, 255) Color range.
+        # 2. Swap Axes of and frames(0) body parts(1) so rows represent body
+        # parts and cols represent frames.
+        img[:, :, 0] = np.interp(self.positions[:, :, 0],
+                                 [minmax_pos_x[0], minmax_pos_x[1]],
+                                 [0, 255]).swapaxes(0, 1)
+        img[:, :, 1] = np.interp(self.positions[:, :, 1],
+                                 [minmax_pos_y[0], minmax_pos_y[1]],
+                                 [0, 255]).swapaxes(0, 1)
+        img[:, :, 2] = np.interp(self.positions[:, :, 2],
+                                 [minmax_pos_z[0], minmax_pos_z[1]],
+                                 [0, 255]).swapaxes(0, 1)
+        img = cv2.resize(img, output_size)
 
-    #     if show_img:
-    #         cv2.imshow(self.name, img)
-    #         print(f'Showing motion image from [{self.name}]. Press any key to'
-    #               ' close the image and continue.')
-    #         cv2.waitKey(0)
-    #         cv2.destroyAllWindows()
-    #     return img
+        if show_img:
+            cv2.imshow(self.name, img)
+            print(f'Showing motion image from [{self.name}]. Press any key to'
+                  ' close the image and continue.')
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        return img
 
     # ? Should this function stay here?
     def _filter_zero_frames(self, positions: np.ndarray) -> list:
