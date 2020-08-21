@@ -1,6 +1,6 @@
 """An abstract loader class for specific sequence loaders."""
 import numpy as np
-from mana.models.a_sequence_loader import ASequenceLoader
+from mana.utils.data_operations.loaders.a_sequence_loader import ASequenceLoader
 from mana.models.sequence import Sequence
 from mana.models.sequence_transforms import SequenceTransforms
 import acm_asf_parser.amc_parser as amc_asf_parser

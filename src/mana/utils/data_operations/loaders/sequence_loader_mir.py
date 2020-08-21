@@ -3,7 +3,7 @@ import json
 import numpy as np
 from mana.models.sequence import Sequence
 from mana.models.sequence_transforms import SequenceTransforms
-from mana.models.a_sequence_loader import ASequenceLoader
+from mana.utils.data_operations.loaders.a_sequence_loader import ASequenceLoader
 
 
 class SequenceLoaderMIR(ASequenceLoader):
