@@ -16,7 +16,7 @@ setuptools.setup(
     packages=setuptools.find_packages(where='src'),
     install_requires=[
         'numpy', 'scikit-learn', 'plotly>=4.9', 'chart-studio>=1', 'kaleido',
-        'transforms3d', 'matplotlib'
+        'transforms3d', 'matplotlib', 'opencv-python'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
