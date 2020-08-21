@@ -88,10 +88,8 @@ def pose_orientation(array: np.ndarray,
             Where the first dimension = number of frames,
             the second dimension = number of positions,
             and the last dimension = number of axis.
-        rotation_vectors (np.ndarray): Array consisting of two point vectors.
-            Array can either contain two vectors or a list of two vectors with
-            size = number of input frames. The first vector will be subtracted
-            by the second.
+        rotation_vectors (np.ndarray): A point vector or an array of point
+            vectors with size equal to number of frames.
         plane_normals (np.ndarray): A vector that defines the normal the plane
             where the array should be rotated to. Can either contain a
             3-d vector or an array of 3-d vectors with size = number of input
@@ -125,21 +123,20 @@ def pose_orientation(array: np.ndarray,
         raise ValueError('Rotation vectors must be a 1 or 2 dimensional numpy '
                          'array')
     if rotation_vectors.shape[0] not in [3, n_frames]:
-        raise ValueError('Rotation vectors must contain two vectors or number '
+        raise ValueError('Rotation vectors must contain one vector or number '
                          'of frames times two vectors!')
 
-    if rotation_vectors.ndim > 2:
+    if plane_normals.ndim > 2:
         raise ValueError(
-            'Orthogonal vectors must be a 1 or 2 dimensional numpy array')
+            'Plane normals must be a 1 or 2 dimensional numpy array')
     if plane_normals.shape[0] not in [3, n_frames]:
-        raise ValueError('Orthogonal vectors must contain only one vector '
+        raise ValueError('Plane normals must contain only one vector '
                          '(shape = 3) or as many vectors as frames.')
 
-    if rotation_vectors.ndim > 2:
-        raise ValueError(
-            'Origin vectors must be a 1 or 2 dimensional numpy array')
+    if origins.ndim > 2:
+        raise ValueError('Origins must be a 1 or 2 dimensional numpy array')
     if origins.shape[0] not in [3, n_frames]:
-        raise ValueError('Orthogonal vectors must contain only one vector '
+        raise ValueError('Origins must contain only one vector '
                          '(shape = 3) or as many vectors as frames.')
 
     if rotation_vectors.ndim == 1:
@@ -157,6 +154,10 @@ def pose_orientation(array: np.ndarray,
     # same plane normals for later broadcasting
     if plane_normals.shape[0] == 1 and rotation_vectors.shape[0] > 1:
         plane_normals = np.full(rotation_vectors.shape, (plane_normals[0]))
+    # If 1< plane normals but only one plane normal given, make an array of
+    # same rotation vectors for later broadcasting
+    if rotation_vectors.shape[0] == 1 and plane_normals.shape[0] > 1:
+        rotation_vectors = np.full(plane_normals.shape, (rotation_vectors[0]))
     axes = np.abs(mt.orthogonal_vector(rotation_vectors, plane_normals))
 
     # create rotation matrix about axis
