@@ -8,6 +8,7 @@ import networkx as nx
 import numpy as np
 from scipy.spatial.transform import Rotation
 
+import mana.utils.math.trans as omt
 import mana.utils.math.transformations as mt
 
 
@@ -27,6 +28,48 @@ def _filter_zero_frames(positions: np.ndarray) -> List[bool]:
         List[bool]: The filter list.
     """
     return [len(pos) != len(pos[np.all(pos == 0)]) for pos in positions]
+
+
+def get_pelvis_coordinate_system(pelvis: np.ndarray, torso: np.ndarray,
+                                 hip_l: np.ndarray, hip_r: np.ndarray):
+    """Returns a pelvis coordinate system defined as a tuple containing an
+    origin point and a list of three normalised direction vectors.
+
+    Constructs direction vectors that define the axes directions of the pelvis
+    coordinate system.
+    X-Axis-Direction:   Normalised vector whose direction points from hip_l to
+        hip_r. Afterwards, it is translated so that it starts at the pelvis.
+    Y-Axis-Direction:   Normalised vector whose direction is determined so that
+        it is perpendicular to the hip_l-hip_r vector and points to the torso.
+        Afterwards, it is translated so that it starts at the pelvis.
+    Z-Axis-Direction:   The normalised cross product vector between X-Axis and
+        Y-Axis that starts at the pelvis and results in a right handed
+        Coordinate System.
+
+    Args:
+        pelvis (np.ndarray): The X, Y and Z coordinates of the pelvis body part.
+        torso (np.ndarray): The X, Y and Z coordinates of the torso body part.
+        hip_r (np.ndarray): The X, Y and Z coordinates of the hip_l body part.
+        hip_l (np.ndarray): The X, Y and Z coordinates of the hip_r body part.
+    """
+
+    # Direction of hip_l -> hip_r is the direction of the X-Axis
+    hip_l_hip_r = hip_r - hip_l
+
+    # Orthogonal Projection to determine Y-Axis direction
+    vec_a = torso - hip_l
+    vec_b = hip_r - hip_l
+
+    scalar = np.dot(vec_a, vec_b) / np.dot(vec_b, vec_b)
+    a_on_b = (scalar * vec_b) + hip_l
+    vec = torso - a_on_b
+
+    origin = pelvis
+    vec_x = mt.norm_vec(hip_l_hip_r)
+    vec_z = mt.norm_vec(vec)
+    vec_y = mt.orthogonal_vector(vec_z, vec_x)
+
+    return [(origin, [vec_x, vec_y, vec_z])]
 
 
 class SceneGraphSequence:
@@ -140,8 +183,7 @@ class SceneGraphSequence:
 
         return SceneGraphSequence(self.body_parts,
                                   self.positions[start:stop:step],
-                                  self.timestamps[start:stop:step], self.name,
-                                  scene_graph)
+                                  self.timestamps[start:stop:step], self.name)
 
     def _get_pelvis_cs_positions(self, positions):
         """Transforms all points in positions parameter so they are relative to
@@ -150,17 +192,18 @@ class SceneGraphSequence:
         transformed_positions = []
         for i, frame in enumerate(positions):
             transformed_positions.append([])
-            pelvis_cs = transformations.get_pelvis_coordinate_system(
+            #!! pelvis_cs = omt.get_pelvis_coordinate_system(positions[i][self.body_parts["pelvis"]], positions[i][self.body_parts["torso"]], positions[i][self.body_parts["hip_l"]], positions[i][self.body_parts["hip_r"]])
+            pelvis_cs = get_pelvis_coordinate_system(
                 positions[i][self.body_parts["pelvis"]],
                 positions[i][self.body_parts["torso"]],
                 positions[i][self.body_parts["hip_l"]],
                 positions[i][self.body_parts["hip_r"]])
-            transformation = transformations.get_cs_projection_transformation(
-                np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]]),
-                np.array([
-                    pelvis_cs[0][0], pelvis_cs[0][1][0], pelvis_cs[0][1][1],
-                    pelvis_cs[0][1][2]
-                ]))
+
+            #!! transformation = omt.get_cs_projection_transformation(np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]]), np.array([pelvis_cs[0][0], pelvis_cs[0][1][0], pelvis_cs[0][1][1], pelvis_cs[0][1][2]]))
+            transformation = mt.projection_matrix(pelvis_cs[0][0],
+                                                  pelvis_cs[0][1][0],
+                                                  pelvis_cs[0][1][1])
+
             for _, pos in enumerate(frame):
                 transformed_positions[i].append(
                     (transformation @ np.append(pos, 1))[:3])
@@ -232,18 +275,20 @@ class SceneGraphSequence:
         parent_pos = positions[:, self.body_parts[parent_node]]
         parent_cs = scene_graph.nodes[parent_node]['coordinate_system']
 
-        translation_mat4x4 = transformations.translation_matrix_4x4_batch(
-            node_pos - parent_pos)
+        #!! translation_mat4x4 = omt.translation_matrix_4x4_batch(node_pos - parent_pos)
+        translation_mat4x4 = mt.transformation(translations=(node_pos -
+                                                             parent_pos))
+
         # If No successors or more than one successor present, add translation
         # only to (parent_node, node) edge.
         # TODO: How can we circumvent to check whether node == "torso" ?
         if len(successors) != 1 or node == "torso":
             scene_graph[parent_node][node][
                 'transformation'] = translation_mat4x4
-            scene_graph.nodes[node]['coordinate_system'][
-                "origin"] = transformations.mat_mul_batch(
-                    translation_mat4x4,
-                    transformations.v3_to_v4_batch(parent_cs['origin']))[:, :3]
+            #!! scene_graph.nodes[node]['coordinate_system']["origin"] = omt.mat_mul_batch(translation_mat4x4, omt.v3_to_v4_batch(parent_cs['origin']))[:, :3]
+            scene_graph.nodes[node]['coordinate_system']["origin"] = mt.bmm(
+                translation_mat4x4, mt.v3_to_v4(parent_cs['origin']))[:, :3]
+
             scene_graph.nodes[node]['coordinate_system']["x_axis"] = parent_cs[
                 'x_axis']
             scene_graph.nodes[node]['coordinate_system']["y_axis"] = parent_cs[
@@ -258,13 +303,15 @@ class SceneGraphSequence:
             scene_graph.nodes[node]['angles'] = {}
             # Get direction vector from node to child to determine rotation of
             # nodes' joint
-            node_to_child_node = transformations.norm_batch(child_pos -
-                                                            node_pos)
+            #!! node_to_child_node = omt.norm_batch(child_pos - node_pos)
+            node_to_child_node = mt.norm_vec(child_pos - node_pos)
+
             # Get parent coordinate system Z-axis as reference for nodes'
             # joint rotation..
             # ..Determine 4x4 homogenious rotation matrix to derive joint
             # angles later
-            rot_parent_to_node = transformations.get_rotation_batch(
+            #!! rot_parent_to_node = omt.get_rotation_batch(parent_cs['z_axis'] * -1, node_to_child_node)
+            rot_parent_to_node = mt.rotation_from_vectors(
                 parent_cs['z_axis'] * -1, node_to_child_node)
 
             # Get Euler Sequences to be able to determine medical joint angles
@@ -281,9 +328,10 @@ class SceneGraphSequence:
 
             # Store transformation from parent to current node in
             # corresponding edge
-            scene_graph[parent_node][node][
-                'transformation'] = transformations.mat_mul_batch(
-                    translation_mat4x4, rot_parent_to_node)
+            #!! scene_graph[parent_node][node]['transformation'] = omt.mat_mul_batch(translation_mat4x4, rot_parent_to_node)
+            scene_graph[parent_node][node]['transformation'] = mt.bmm(
+                translation_mat4x4, rot_parent_to_node)
+
             # Store Rotation Matrix
             scene_graph.nodes[node]['angles']['rotation_matrix'] = np.array(
                 rot_parent_to_node)
@@ -292,21 +340,24 @@ class SceneGraphSequence:
             scene_graph.nodes[node]['angles']['euler_yxz'] = euler_angles_yxz
             scene_graph.nodes[node]['angles']['euler_zxz'] = euler_angles_zxz
             # Store the nodes coordinate system
-            scene_graph.nodes[node]['coordinate_system'][
-                'origin'] = transformations.mat_mul_batch(
-                    translation_mat4x4,
-                    transformations.v3_to_v4_batch(parent_cs['origin']))[:, :3]
-            x_axes = transformations.norm_batch(
-                transformations.mat_mul_batch(rot_parent_to_node[:, :3, :3],
-                                              parent_cs['x_axis']))
+            #!! scene_graph.nodes[node]['coordinate_system']['origin'] = omt.mat_mul_batch(translation_mat4x4, omt.v3_to_v4_batch(parent_cs['origin']))[:, :3]
+            scene_graph.nodes[node]['coordinate_system']['origin'] = mt.bmm(
+                translation_mat4x4, mt.v3_to_v4(parent_cs['origin']))[:, :3]
+
+            #!! x_axes = omt.norm_batch(omt.mat_mul_batch(rot_parent_to_node[:, :3, :3], parent_cs['x_axis']))
+            x_axes = mt.norm_vec(
+                mt.bmm(rot_parent_to_node[:, :3, :3], parent_cs['x_axis']))
             scene_graph.nodes[node]['coordinate_system']['x_axis'] = x_axes
-            y_axes = transformations.norm_batch(
-                transformations.mat_mul_batch(rot_parent_to_node[:, :3, :3],
-                                              parent_cs['y_axis']))
+
+            #!! y_axes = omt.norm_batch(omt.mat_mul_batch(rot_parent_to_node[:, :3, :3], parent_cs['y_axis']))
+            y_axes = mt.norm_vec(
+                mt.bmm(rot_parent_to_node[:, :3, :3], parent_cs['y_axis']))
             scene_graph.nodes[node]['coordinate_system']['y_axis'] = y_axes
-            z_axes = transformations.norm_batch(
-                transformations.mat_mul_batch(rot_parent_to_node[:, :3, :3],
-                                              parent_cs['z_axis']))
+
+            #!! z_axes = omt.norm_batch(omt.mat_mul_batch(rot_parent_to_node[:, :3, :3], parent_cs['z_axis']))
+            z_axes = mt.norm_vec(
+                mt.bmm(rot_parent_to_node[:, :3, :3], parent_cs['z_axis']))
+
             scene_graph.nodes[node]['coordinate_system']['z_axis'] = z_axes
 
         # Repeat procedure if successors present
