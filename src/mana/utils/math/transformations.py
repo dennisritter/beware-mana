@@ -46,9 +46,9 @@ def angle(v1: np.ndarray,
     # * The dot product of two equal vectors will result in a minor rounding
     # * error (dot(norm([1,1,1])) =
     # * dot([0.57735027, 0.57735027, 0.57735027]) = 1.0000000000000002)
-    # * As np.arccos can only handle values from 0.0 to 1.0 (inclusive),
+    # * As np.arccos can only handle values from -1.0 to 1.0 (inclusive),
     # * we clamp the result to this range, too.
-    return np.arccos(np.clip(dot(norm_vec(v1), norm_vec(v2)), 0.0, 1.0))
+    return np.arccos(np.clip(dot(norm_vec(v1), norm_vec(v2)), -1.0, 1.0))
 
 
 def angle_complementary(
