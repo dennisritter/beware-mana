@@ -8,7 +8,6 @@ import networkx as nx
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-import mana.utils.math.trans as omt
 import mana.utils.math.transformations as mt
 
 
@@ -192,14 +191,12 @@ class SceneGraphSequence:
         transformed_positions = []
         for i, frame in enumerate(positions):
             transformed_positions.append([])
-            #!! pelvis_cs = omt.get_pelvis_coordinate_system(positions[i][self.body_parts["pelvis"]], positions[i][self.body_parts["torso"]], positions[i][self.body_parts["hip_l"]], positions[i][self.body_parts["hip_r"]])
             pelvis_cs = get_pelvis_coordinate_system(
                 positions[i][self.body_parts["pelvis"]],
                 positions[i][self.body_parts["torso"]],
                 positions[i][self.body_parts["hip_l"]],
                 positions[i][self.body_parts["hip_r"]])
 
-            #!! transformation = omt.get_cs_projection_transformation(np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]]), np.array([pelvis_cs[0][0], pelvis_cs[0][1][0], pelvis_cs[0][1][1], pelvis_cs[0][1][2]]))
             transformation = mt.projection_matrix(pelvis_cs[0][0],
                                                   pelvis_cs[0][1][0],
                                                   pelvis_cs[0][1][1])
@@ -275,9 +272,12 @@ class SceneGraphSequence:
         parent_pos = positions[:, self.body_parts[parent_node]]
         parent_cs = scene_graph.nodes[parent_node]['coordinate_system']
 
-        #!! translation_mat4x4 = omt.translation_matrix_4x4_batch(node_pos - parent_pos)
-        translation_mat4x4 = mt.transformation(translations=(node_pos -
-                                                             parent_pos))
+        # TODO: change this call to avoid the rotations input -> transformations.tranformation needs to be fixed
+        # translation_mat4x4 = mt.transformation(translations=(node_pos - parent_pos))
+        translation_mat4x4 = mt.transformation(
+            rotations=np.tile(np.array([[[1, 0, 0], [0, 1, 0], [0, 0, 1]]]),
+                              [len(node_pos), 1, 1]),
+            translations=(node_pos - parent_pos))
 
         # If No successors or more than one successor present, add translation
         # only to (parent_node, node) edge.
@@ -285,8 +285,7 @@ class SceneGraphSequence:
         if len(successors) != 1 or node == "torso":
             scene_graph[parent_node][node][
                 'transformation'] = translation_mat4x4
-            #!! scene_graph.nodes[node]['coordinate_system']["origin"] = omt.mat_mul_batch(translation_mat4x4, omt.v3_to_v4_batch(parent_cs['origin']))[:, :3]
-            scene_graph.nodes[node]['coordinate_system']["origin"] = mt.bmm(
+            scene_graph.nodes[node]['coordinate_system']["origin"] = mt.bmvm(
                 translation_mat4x4, mt.v3_to_v4(parent_cs['origin']))[:, :3]
 
             scene_graph.nodes[node]['coordinate_system']["x_axis"] = parent_cs[
@@ -303,16 +302,19 @@ class SceneGraphSequence:
             scene_graph.nodes[node]['angles'] = {}
             # Get direction vector from node to child to determine rotation of
             # nodes' joint
-            #!! node_to_child_node = omt.norm_batch(child_pos - node_pos)
             node_to_child_node = mt.norm_vec(child_pos - node_pos)
 
             # Get parent coordinate system Z-axis as reference for nodes'
             # joint rotation..
             # ..Determine 4x4 homogenious rotation matrix to derive joint
             # angles later
-            #!! rot_parent_to_node = omt.get_rotation_batch(parent_cs['z_axis'] * -1, node_to_child_node)
+            #! orthogonal vector computation is different in old transform & mana.transform
             rot_parent_to_node = mt.rotation_from_vectors(
                 parent_cs['z_axis'] * -1, node_to_child_node)
+            rot_parent_to_node = mt.transformation(
+                rotations=rot_parent_to_node,
+                translations=np.tile(np.array([[0, 0, 0]]),
+                                     [len(rot_parent_to_node), 1]))
 
             # Get Euler Sequences to be able to determine medical joint angles
             # NOTE: Scipy from_dcm() function has been renamed to 'as_matrix()'
@@ -328,7 +330,6 @@ class SceneGraphSequence:
 
             # Store transformation from parent to current node in
             # corresponding edge
-            #!! scene_graph[parent_node][node]['transformation'] = omt.mat_mul_batch(translation_mat4x4, rot_parent_to_node)
             scene_graph[parent_node][node]['transformation'] = mt.bmm(
                 translation_mat4x4, rot_parent_to_node)
 
@@ -340,23 +341,19 @@ class SceneGraphSequence:
             scene_graph.nodes[node]['angles']['euler_yxz'] = euler_angles_yxz
             scene_graph.nodes[node]['angles']['euler_zxz'] = euler_angles_zxz
             # Store the nodes coordinate system
-            #!! scene_graph.nodes[node]['coordinate_system']['origin'] = omt.mat_mul_batch(translation_mat4x4, omt.v3_to_v4_batch(parent_cs['origin']))[:, :3]
-            scene_graph.nodes[node]['coordinate_system']['origin'] = mt.bmm(
+            scene_graph.nodes[node]['coordinate_system']['origin'] = mt.bmvm(
                 translation_mat4x4, mt.v3_to_v4(parent_cs['origin']))[:, :3]
 
-            #!! x_axes = omt.norm_batch(omt.mat_mul_batch(rot_parent_to_node[:, :3, :3], parent_cs['x_axis']))
             x_axes = mt.norm_vec(
-                mt.bmm(rot_parent_to_node[:, :3, :3], parent_cs['x_axis']))
+                mt.bmvm(rot_parent_to_node[:, :3, :3], parent_cs['x_axis']))
             scene_graph.nodes[node]['coordinate_system']['x_axis'] = x_axes
 
-            #!! y_axes = omt.norm_batch(omt.mat_mul_batch(rot_parent_to_node[:, :3, :3], parent_cs['y_axis']))
             y_axes = mt.norm_vec(
-                mt.bmm(rot_parent_to_node[:, :3, :3], parent_cs['y_axis']))
+                mt.bmvm(rot_parent_to_node[:, :3, :3], parent_cs['y_axis']))
             scene_graph.nodes[node]['coordinate_system']['y_axis'] = y_axes
 
-            #!! z_axes = omt.norm_batch(omt.mat_mul_batch(rot_parent_to_node[:, :3, :3], parent_cs['z_axis']))
             z_axes = mt.norm_vec(
-                mt.bmm(rot_parent_to_node[:, :3, :3], parent_cs['z_axis']))
+                mt.bmvm(rot_parent_to_node[:, :3, :3], parent_cs['z_axis']))
 
             scene_graph.nodes[node]['coordinate_system']['z_axis'] = z_axes
 
