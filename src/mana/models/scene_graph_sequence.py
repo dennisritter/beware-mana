@@ -73,45 +73,6 @@ def _pelvis_coordinate_system(pelvis: np.ndarray, torso: np.ndarray,
 
 class SceneGraphSequence:
     """Represents a motion sequence."""
-
-    # Number, order and label of tracked body parts
-    body_parts = {
-        "head": 0,
-        "neck": 1,
-        "shoulder_l": 2,
-        "shoulder_r": 3,
-        "elbow_l": 4,
-        "elbow_r": 5,
-        "wrist_l": 6,
-        "wrist_r": 7,
-        "torso": 8,
-        "pelvis": 9,
-        "hip_l": 10,
-        "hip_r": 11,
-        "knee_l": 12,
-        "knee_r": 13,
-        "ankle_l": 14,
-        "ankle_r": 15,
-    }
-    # A directed graph that defines the hierarchy between human body parts
-    scene_graph = nx.DiGraph([
-        ("pelvis", "torso"),
-        ("torso", "neck"),
-        ("neck", "head"),
-        ("neck", "shoulder_l"),
-        ("shoulder_l", "elbow_l"),
-        ("elbow_l", "wrist_l"),
-        ("neck", "shoulder_r"),
-        ("shoulder_r", "elbow_r"),
-        ("elbow_r", "wrist_r"),
-        ("pelvis", "hip_l"),
-        ("hip_l", "knee_l"),
-        ("knee_l", "ankle_l"),
-        ("pelvis", "hip_r"),
-        ("hip_r", "knee_r"),
-        ("knee_r", "ankle_r"),
-    ])
-
     def __init__(self,
                  positions: np.ndarray,
                  scene_graph: nx.DiGraph = None,
@@ -119,11 +80,48 @@ class SceneGraphSequence:
         """
         Args:
             positions (list): The tracked body part positions for each frame.
-            scene_graph (networkx.DiGraph): A Directed Graph defining the 
+            scene_graph (networkx.DiGraph): A Directed Graph defining the
                 hierarchy between body parts that will be filled with related data.
             name (str): The name of this sequence.
         """
         self.name = name
+        # Number, order and label of tracked body parts
+        self.body_parts = {
+            "head": 0,
+            "neck": 1,
+            "shoulder_l": 2,
+            "shoulder_r": 3,
+            "elbow_l": 4,
+            "elbow_r": 5,
+            "wrist_l": 6,
+            "wrist_r": 7,
+            "torso": 8,
+            "pelvis": 9,
+            "hip_l": 10,
+            "hip_r": 11,
+            "knee_l": 12,
+            "knee_r": 13,
+            "ankle_l": 14,
+            "ankle_r": 15,
+        }
+        # A directed graph that defines the hierarchy between human body parts
+        self.scene_graph = nx.DiGraph([
+            ("pelvis", "torso"),
+            ("torso", "neck"),
+            ("neck", "head"),
+            ("neck", "shoulder_l"),
+            ("shoulder_l", "elbow_l"),
+            ("elbow_l", "wrist_l"),
+            ("neck", "shoulder_r"),
+            ("shoulder_r", "elbow_r"),
+            ("elbow_r", "wrist_r"),
+            ("pelvis", "hip_l"),
+            ("hip_l", "knee_l"),
+            ("knee_l", "ankle_l"),
+            ("pelvis", "hip_r"),
+            ("hip_r", "knee_r"),
+            ("knee_r", "ankle_r"),
+        ])
 
         # A Boolean mask list to exclude all frames, where all positions are 0.0
         zero_frames_filter_list = _filter_zero_frames(positions)
@@ -150,7 +148,7 @@ class SceneGraphSequence:
 
     def __len__(self) -> int:
         """Returns the length of the sequence.
-        
+
         Returns:
             int: the length of the sequence.
         """
@@ -580,3 +578,18 @@ class SceneGraphSequence:
                  merge_edge_data['transformation']))
 
         return self
+
+
+sgs1 = SceneGraphSequence.from_mka_file('squat_0.json')
+sgs2 = SceneGraphSequence.from_mka_file('squat_1.json')
+
+# sgs1.merge(sgs2)
+
+from mana.utils.visualization.pose_visualization import vis_pose
+
+vis_pose(positions=sgs1.positions[35], name='pose')
+
+# from mana.utils.visualization.skeleton_visualiser import SkeletonVisualiser
+
+# sv = SkeletonVisualiser(sgs1)
+# sv.show()
