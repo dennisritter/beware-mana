@@ -81,7 +81,8 @@ class SceneGraphSequence:
         Args:
             positions (list): The tracked body part positions for each frame.
             scene_graph (networkx.DiGraph): A Directed Graph defining the
-                hierarchy between body parts that will be filled with related data.
+                hierarchy between body parts that will be filled with related
+                data.
             name (str): The name of this sequence.
         """
         self.name = name
@@ -241,7 +242,7 @@ class SceneGraphSequence:
                           positions: np.ndarray) -> None:
         """Analyses, computes transformations and eventually fills the
         scene graph.
-        
+
         Args:
             scene_graph (networkx.DiGraph): A directed Graph defining the
                 hierarchy between body parts that will be filled with related
@@ -277,7 +278,7 @@ class SceneGraphSequence:
                                    root_node: str,
                                    positions: np.ndarray) -> None:
         """Calculates the transformations along the scene graph.
-        
+
         Args:
             scene_graph (networkx.DiGraph): A directed Graph defining the
                 hierarchy between body parts that will be filled with related
@@ -319,8 +320,10 @@ class SceneGraphSequence:
         parent_pos = positions[:, self.body_parts[parent_node]]
         parent_cs = scene_graph.nodes[parent_node]['coordinate_system']
 
-        # TODO: change this call to avoid the rotations input -> transformations.tranformation needs to be fixed
-        # translation_mat4x4 = mt.transformation(translations=(node_pos - parent_pos))
+        # TODO: change this call to avoid the rotations input ->
+        #       transformations.tranformation needs to be fixed
+        # translation_mat4x4 = mt.transformation(translations=
+        #       (node_pos - parent_pos))
         translation_mat4x4 = mt.transformation(
             rotations=np.tile(np.array([[[1, 0, 0], [0, 1, 0], [0, 0, 1]]]),
                               [len(node_pos), 1, 1]),
@@ -355,7 +358,8 @@ class SceneGraphSequence:
             # joint rotation..
             # ..Determine 4x4 homogenious rotation matrix to derive joint
             # angles later
-            #! orthogonal vector computation is different in old transform & mana.transform
+            #! orthogonal vector computation is different in old transform &
+            #       mana.transform
             rot_parent_to_node = mt.rotation_from_vectors(
                 parent_cs['z_axis'] * -1, node_to_child_node)
             rot_parent_to_node = mt.transformation(
@@ -413,7 +417,7 @@ class SceneGraphSequence:
 
     def to_json(self) -> str:
         """Returns the sequence instance as a json-formatted string.
-        
+
         Returns:
             str: the json-formatted sequence string
 
@@ -429,7 +433,8 @@ class SceneGraphSequence:
         #     'name': self.name,
         #     'body_parts': self.body_parts,
         #     'positions': self.positions.tolist(),
-        #     'scene_graph': nx.readwrite.json_graph.adjacency_data(self.scene_graph)
+        #     'scene_graph': nx.readwrite.json_graph.adjacency_data(
+        #                           self.scene_graph)
         # }
         # return json.dumps(json_dict)
 
@@ -441,7 +446,8 @@ class SceneGraphSequence:
 
         Args:
             path (str): Path to the json file
-            name (str): The name of the Sequence (defaults to 'SceneGraphSequence')
+            name (str): The name of the Sequence (defaults to
+                'SceneGraphSequence')
 
         Returns:
             SceneGraphSequence: a new SceneGraphSequence instance from the
@@ -459,7 +465,8 @@ class SceneGraphSequence:
 
         Args:
             json_data (Union[str, dict]): The json-formatted string or dict.
-            name (str): The name of the Sequence (defaults to 'SceneGraphSequence')
+            name (str): The name of the Sequence (defaults to
+                'SceneGraphSequence')
 
         Returns:
             SceneGraphSequence: a new SceneGraphSequence instance from the
@@ -578,18 +585,3 @@ class SceneGraphSequence:
                  merge_edge_data['transformation']))
 
         return self
-
-
-sgs1 = SceneGraphSequence.from_mka_file('squat_0.json')
-sgs2 = SceneGraphSequence.from_mka_file('squat_1.json')
-
-# sgs1.merge(sgs2)
-
-from mana.utils.visualization.pose_visualization import vis_pose
-
-vis_pose(positions=sgs1.positions[35], name='pose')
-
-# from mana.utils.visualization.skeleton_visualiser import SkeletonVisualiser
-
-# sv = SkeletonVisualiser(sgs1)
-# sv.show()
