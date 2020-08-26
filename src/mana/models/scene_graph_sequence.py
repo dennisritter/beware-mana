@@ -29,8 +29,8 @@ def _filter_zero_frames(positions: np.ndarray) -> List[bool]:
     return [len(pos) != len(pos[np.all(pos == 0)]) for pos in positions]
 
 
-def get_pelvis_coordinate_system(pelvis: np.ndarray, torso: np.ndarray,
-                                 hip_l: np.ndarray, hip_r: np.ndarray):
+def _pelvis_coordinate_system(pelvis: np.ndarray, torso: np.ndarray,
+                              hip_l: np.ndarray, hip_r: np.ndarray):
     """Returns a pelvis coordinate system defined as a tuple containing an
     origin point and a list of three normalised direction vectors.
 
@@ -72,80 +72,106 @@ def get_pelvis_coordinate_system(pelvis: np.ndarray, torso: np.ndarray,
 
 
 class SceneGraphSequence:
-    """Represents a motion sequence.
+    """Represents a motion sequence."""
 
-    Attributes:
-        body_parts (dict): A dictionary mapping body part names to position
-            indices in the "positions" attribute array.
-        positions (list): The tracked body part positions for each frame.
-        timestamps (list): The timestamps for each tracked frame.
-        name (str): The name of this sequence.
-        scene_graph (networkx.DiGraph): A Directed Graph defining the hierarchy
-            between body parts that will be filled with related data.
-    """
+    # Number, order and label of tracked body parts
+    body_parts = {
+        "head": 0,
+        "neck": 1,
+        "shoulder_l": 2,
+        "shoulder_r": 3,
+        "elbow_l": 4,
+        "elbow_r": 5,
+        "wrist_l": 6,
+        "wrist_r": 7,
+        "torso": 8,
+        "pelvis": 9,
+        "hip_l": 10,
+        "hip_r": 11,
+        "knee_l": 12,
+        "knee_r": 13,
+        "ankle_l": 14,
+        "ankle_r": 15,
+    }
+    # A directed graph that defines the hierarchy between human body parts
+    scene_graph = nx.DiGraph([
+        ("pelvis", "torso"),
+        ("torso", "neck"),
+        ("neck", "head"),
+        ("neck", "shoulder_l"),
+        ("shoulder_l", "elbow_l"),
+        ("elbow_l", "wrist_l"),
+        ("neck", "shoulder_r"),
+        ("shoulder_r", "elbow_r"),
+        ("elbow_r", "wrist_r"),
+        ("pelvis", "hip_l"),
+        ("hip_l", "knee_l"),
+        ("knee_l", "ankle_l"),
+        ("pelvis", "hip_r"),
+        ("hip_r", "knee_r"),
+        ("knee_r", "ankle_r"),
+    ])
+
     def __init__(self,
-                 body_parts: dict,
                  positions: np.ndarray,
-                 timestamps: np.ndarray,
+                 scene_graph: nx.DiGraph = None,
                  name: str = 'sequence'):
+        """
+        Args:
+            positions (list): The tracked body part positions for each frame.
+            scene_graph (networkx.DiGraph): A Directed Graph defining the 
+                hierarchy between body parts that will be filled with related data.
+            name (str): The name of this sequence.
+        """
         self.name = name
-        # Number, order and label of tracked body parts
-        # Example: { "head": 0, "neck": 1, ... }
-        self.body_parts = body_parts
 
         # A Boolean mask list to exclude all frames, where all positions are 0.0
         zero_frames_filter_list = _filter_zero_frames(positions)
+
         # Defines positions of each bodypart
         # 1. Dimension = Time
         # 2. Dimension = Bodypart
         # 3. Dimension = x, y, z
         # Example: [
-        #           [[f1_bp1_x, f1_bp1_x, f1_bp1_x], [f1_bp2_x, f1_bp2_x, f1_bp2_x], ...],
-        #           [[f2_bp1_x, f2_bp1_x, f2_bp1_x], [f2_bp2_x, f2_bp2_x, f2_bp2_x], ...],
+        #           [[f1_bp1_x, f1_bp1_x, f1_bp1_x],
+        #            [f1_bp2_x, f1_bp2_x, f1_bp2_x], ...],
+        #           [[f2_bp1_x, f2_bp1_x, f2_bp1_x],
+        #            [f2_bp2_x, f2_bp2_x, f2_bp2_x], ...],
         #           ...
         #          ]
         # shape: (num_body_parts, num_keypoints, xyz)
         self.positions = self._get_pelvis_cs_positions(
             np.array(positions)[zero_frames_filter_list])
 
-        # Timestamps for when the positions have been tracked
-        # Example: [<someTimestamp1>, <someTimestamp2>, <someTimestamp3>, ...]
-        self.timestamps = np.array(timestamps)[zero_frames_filter_list]
-
-        # A directed graph that defines the hierarchy between human body parts
-        self.scene_graph = nx.DiGraph([
-            ("pelvis", "torso"),
-            ("torso", "neck"),
-            ("neck", "head"),
-            ("neck", "shoulder_l"),
-            ("shoulder_l", "elbow_l"),
-            ("elbow_l", "wrist_l"),
-            ("neck", "shoulder_r"),
-            ("shoulder_r", "elbow_r"),
-            ("elbow_r", "wrist_r"),
-            ("pelvis", "hip_l"),
-            ("hip_l", "knee_l"),
-            ("knee_l", "ankle_l"),
-            ("pelvis", "hip_r"),
-            ("hip_r", "knee_r"),
-            ("knee_r", "ankle_r"),
-        ])
-        self._fill_scenegraph(self.scene_graph, self.positions)
+        if scene_graph is not None:
+            self.scene_graph = scene_graph
+        else:
+            self._fill_scene_graph(self.scene_graph, self.positions)
 
     def __len__(self) -> int:
-        return len(self.timestamps)
+        """Returns the length of the sequence.
+        
+        Returns:
+            int: the length of the sequence.
+        """
+        return len(self.positions)
 
-    def __getitem__(self, item) -> 'SceneGraphSequence':
+    def __getitem__(self, item: Union[slice, tuple,
+                                      int]) -> 'SceneGraphSequence':
         """Returns the sub-sequence item. You can either specifiy one element
         by index or use numpy-like slicing.
 
         Args:
-            item (int/slice): Defines a particular frame or slice from all
-                frames of this sequence.
+            item Union[slice, tuple, int]: Defines a particular frame or slice
+                from all frames of this sequence.
+
+        Returns:
+            SceneGraphSequence: The selected item from the Sequence as a new
+                class instance.
 
         Raises:
-            NotImplementedError if index is given as tuple.
-            TypeError if item is not of type int or slice.
+            NotImplementedError: if index is given as tuple.
+            TypeError: if item is not of type int or slice.
         """
 
         if isinstance(item, slice):
@@ -180,18 +206,24 @@ class SceneGraphSequence:
                     scene_graph[edge1][edge2][data_list] = scene_graph[edge1][
                         edge2][data_list][start:stop:step]
 
-        return SceneGraphSequence(self.body_parts,
-                                  self.positions[start:stop:step],
-                                  self.timestamps[start:stop:step], self.name)
+        return SceneGraphSequence(self.positions[start:stop:step], scene_graph,
+                                  self.name)
 
-    def _get_pelvis_cs_positions(self, positions):
+    def _get_pelvis_cs_positions(self, positions: np.ndarray) -> np.ndarray:
         """Transforms all points in positions parameter so they are relative to
         the pelvis. X-Axis = right, Y-Axis = front, Z-Axis = up.
+
+        Args:
+            positions (np.ndarray): All positions (joints) with shape ==
+                (num_body_parts, num_keypoints, xyz)
+
+        Returns:
+            np.ndarray: The transformed positions relative to the pelvis.
         """
         transformed_positions = []
         for i, frame in enumerate(positions):
             transformed_positions.append([])
-            pelvis_cs = get_pelvis_coordinate_system(
+            pelvis_cs = _pelvis_coordinate_system(
                 positions[i][self.body_parts["pelvis"]],
                 positions[i][self.body_parts["torso"]],
                 positions[i][self.body_parts["hip_l"]],
@@ -207,13 +239,18 @@ class SceneGraphSequence:
 
         return np.array(transformed_positions)
 
-    # TODO: rework method
-    # 1. create scenegraph
-    # 2. transform to center (pelvis)
-    # 3. rotate?
-    # 4. fill graph
-    # 3
-    def _fill_scenegraph(self, scene_graph, positions):
+    def _fill_scene_graph(self, scene_graph: nx.DiGraph,
+                          positions: np.ndarray) -> None:
+        """Analyses, computes transformations and eventually fills the
+        scene graph.
+        
+        Args:
+            scene_graph (networkx.DiGraph): A directed Graph defining the
+                hierarchy between body parts that will be filled with related
+                data.
+            positions (np.ndarray): All positions (joints) with shape ==
+                (num_body_parts, num_keypoints, xyz)
+        """
         # Find Scene Graph Root Node
         root_node = None
         nodes = list(scene_graph.nodes)
@@ -235,11 +272,23 @@ class SceneGraphSequence:
             scene_graph[node1][node2]['transformation'] = []
 
         # Start recursive function with root node in our directed scene_graph
-        self._calc_scene_graph_transformations_batch(scene_graph, root_node,
-                                                     root_node, positions)
+        self._calculate_transformations(scene_graph, root_node, root_node,
+                                        positions)
 
-    def _calc_scene_graph_transformations_batch(self, scene_graph, node,
-                                                root_node, positions):
+    def _calculate_transformations(self, scene_graph: nx.DiGraph, node: str,
+                                   root_node: str,
+                                   positions: np.ndarray) -> None:
+        """Calculates the transformations along the scene graph.
+        
+        Args:
+            scene_graph (networkx.DiGraph): A directed Graph defining the
+                hierarchy between body parts that will be filled with related
+                data.
+            node (str): The current node to compute transformation.
+            root_node (str): The root node in the scene_graph.
+            positions (np.ndarray): All positions (joints) with shape ==
+                (num_body_parts, num_keypoints, xyz)
+        """
         n_frames = len(positions)
         successors = list(scene_graph.successors(node))
 
@@ -261,8 +310,8 @@ class SceneGraphSequence:
 
             # Repeat function recursive for each child node of the root node
             for child_node in successors:
-                self._calc_scene_graph_transformations_batch(
-                    scene_graph, child_node, root_node, positions)
+                self._calculate_transformations(scene_graph, child_node,
+                                                root_node, positions)
             return
 
         node_pos = positions[:, self.body_parts[node]]
@@ -359,24 +408,32 @@ class SceneGraphSequence:
 
         # Repeat procedure if successors present
         for child_node in successors:
-            self._calc_scene_graph_transformations_batch(
-                scene_graph, child_node, root_node, positions)
+            self._calculate_transformations(scene_graph, child_node, root_node,
+                                            positions)
 
         return
 
     def to_json(self) -> str:
-        # TODO: serialize scene_graph. Als ndarrays must be transferred to
+        """Returns the sequence instance as a json-formatted string.
+        
+        Returns:
+            str: the json-formatted sequence string
+
+        Raises:
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+        # TODO: How should the output look like?
+        #       serialize scene_graph. All ndarrays must be transferred to
         #       lists before.
-        # !How should the output look like?
-        """Returns the sequence instance as a json-formatted string."""
-        json_dict = {
-            'name': self.name,
-            'body_parts': self.body_parts,
-            'positions': self.positions.tolist(),
-            'timestamps': self.timestamps.tolist(),
-            # 'scene_graph': nx.readwrite.json_graph.adjacency_data(self.scene_graph)
-        }
-        return json.dumps(json_dict)
+        # json_dict = {
+        #     'name': self.name,
+        #     'body_parts': self.body_parts,
+        #     'positions': self.positions.tolist(),
+        #     'scene_graph': nx.readwrite.json_graph.adjacency_data(self.scene_graph)
+        # }
+        # return json.dumps(json_dict)
 
     @staticmethod
     def from_mka_file(path: str,
@@ -386,6 +443,7 @@ class SceneGraphSequence:
 
         Args:
             path (str): Path to the json file
+            name (str): The name of the Sequence (defaults to 'SceneGraphSequence')
 
         Returns:
             SceneGraphSequence: a new SceneGraphSequence instance from the
@@ -402,7 +460,8 @@ class SceneGraphSequence:
         and returns an SceneGraphSequence object.
 
         Args:
-            json_data Union[str, dict]: The json-formatted string or dict.
+            json_data (Union[str, dict]): The json-formatted string or dict.
+            name (str): The name of the Sequence (defaults to 'SceneGraphSequence')
 
         Returns:
             SceneGraphSequence: a new SceneGraphSequence instance from the
@@ -415,7 +474,7 @@ class SceneGraphSequence:
             json_dict = json_data
 
         positions = np.array(json_dict["positions"])
-        timestamps = np.array(json_dict["timestamps"])
+        # timestamps = np.array(json_dict["timestamps"])
 
         # reshape positions to 3d array
         positions = np.reshape(
@@ -443,24 +502,6 @@ class SceneGraphSequence:
         positions[:, :, 2] *= -1
 
         # The target Body Part format
-        body_parts = {
-            "head": 0,
-            "neck": 1,
-            "shoulder_l": 2,
-            "shoulder_r": 3,
-            "elbow_l": 4,
-            "elbow_r": 5,
-            "wrist_l": 6,
-            "wrist_r": 7,
-            "torso": 8,
-            "pelvis": 9,
-            "hip_l": 10,
-            "hip_r": 11,
-            "knee_l": 12,
-            "knee_r": 13,
-            "ankle_l": 14,
-            "ankle_r": 15,
-        }
 
         # Change body part indices according to the target body part format
         # TODO: Adjust scene graph format to fit optimal kinect azure format
@@ -484,28 +525,23 @@ class SceneGraphSequence:
 
         positions = positions[:, :16]
 
-        return cls(body_parts, positions, timestamps, name=name)
+        return cls(positions, name=name)
 
-    def merge(self, sequence) -> 'SceneGraphSequence':
+    def merge(self, sequence: 'SceneGraphSequence') -> 'SceneGraphSequence':
         """Returns the merged two sequences.
 
-        Raises:
-            ValueError: if either the body_parts, the poseformat or the
-                body_parts do not match!
-        """
-        if self.body_parts != sequence.body_parts:
-            raise ValueError('body_parts of both sequences do not match!')
+        Args:
+            sequence (SceneGraphSequence): The Sequence to merge (append).
 
+        Returns:
+            SceneGraphSequence: The inplace merged sequences.
+        """
         # Copy the given sequence to not change it implicitly
         sequence = sequence[:]
         # concatenate positions, timestamps and angles
         self.positions = np.concatenate((self.positions, sequence.positions),
                                         axis=0)
 
-        self.timestamps = np.concatenate((self.timestamps, sequence.timestamps),
-                                         axis=0)
-
-        # TODO: remove scene graph check
         for node in sequence.scene_graph.nodes:
             merge_node_data = sequence.scene_graph.nodes[node]
             node_data = self.scene_graph.nodes[node]
