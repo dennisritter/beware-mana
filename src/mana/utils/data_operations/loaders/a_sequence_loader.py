@@ -1,28 +1,33 @@
 """An abstract loader class for specific sequence loaders."""
 from abc import ABCMeta, abstractmethod
+
 import numpy as np
+
 from mana.models.sequence import Sequence
 from mana.models.sequence_transforms import SequenceTransforms
 
 
 class ASequenceLoader(metaclass=ABCMeta):
-    """An abstract loader class for specific sequence loaders.
-
-    Attributes:
-        transforms (SequenceTransforms): A SequenceTransforms instance that
-        holds transformations, that are applied after loading a sequence
-        (default = None).
-    """
+    """An abstract loader class for specific sequence loaders."""
     def __init__(self, transforms: SequenceTransforms = None):
+        """
+        Args:
+            transforms (SequenceTransforms): A SequenceTransforms instance that
+                holds transformations, that are applied after loading a sequence
+                (default = None).
+        """
         self.transforms = transforms
 
     @abstractmethod
     def load(self) -> Sequence:
         """Abstract method to load a Sequence from some arbitrary data format
         applying the transformations set in the transforms attribute.
+
+        Returns:
+            Sequence: A new Sequence instance.
         """
 
-    def transform(self, positions: np.ndarray):
+    def transform(self, positions: np.ndarray) -> np.ndarray:
         """Transforms a sequence by consecutively applying the
         SequenceTransforms stored in self.transforms (a list of transforms) and
         returns the resulting positions.
@@ -30,6 +35,12 @@ class ASequenceLoader(metaclass=ABCMeta):
         Note that each transform in self.transforms affects the transforms
         after it as the output of a transform is the input of the next
         transform.
+
+        Args:
+            positions (np.ndarray): The positions to transform.
+
+        Returns:
+            np.ndarray: The transformed positions.
         """
         if not self.transforms:
             return positions

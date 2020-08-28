@@ -1,22 +1,25 @@
 """A basic motion sequence."""
-import math
 import copy
-import numpy as np
+import math
+from typing import List, Tuple, Union
+
 import cv2
+import numpy as np
 
 
 class Sequence:
-    """Represents a motion sequence.
-
-    Attributes:
-        positions (np.ndarray): The tracked body part positions for each frame.
-        name (str): The name of this sequence.
-        desc (str): A description of this sequence.
-    """
+    """Represents a motion sequence."""
     def __init__(self,
                  positions: np.ndarray,
                  name: str = 'sequence',
                  desc: str = None):
+        """
+        Args:
+            positions (np.ndarray): The tracked body part positions for each
+                frame.
+            name (str): The name of this sequence.
+            desc (str): A description of this sequence.
+        """
         self.name = name
         # A Boolean mask list to exclude all frames, where all positions are 0.0
         zero_frames_filter_list = self._filter_zero_frames(positions)
@@ -39,19 +42,26 @@ class Sequence:
 
         The sequence's length is basically the number of frames the sequence
         contains.
+
+        Returns:
+            int: The length of the Sequence.
         """
         return len(self.positions)
 
-    def __getitem__(self, item) -> 'Sequence':
+    def __getitem__(self, item: Union[int, slice]) -> 'Sequence':
         """Returns the sub-sequence item. You can either specifiy one element
         by index or use numpy-like slicing.
 
         Args:
-            item (int/slice): Defines a particular frame or slice from all
-            frames of this sequence.
+            item (Union[int, slice]): Defines a particular frame or slice from
+                all frames of this sequence.
 
-        Raises NotImplementedError if index is given as tuple.
-        Raises TypeError if item is not of type int or slice.
+        Returns:
+            Sequence: A new Sequence instance based on the given index/ slice.
+
+        Raises:
+            NotImplementedError: if index is given as tuple.
+            TypeError if item is not of type int or slice.
         """
 
         if isinstance(item, slice):
@@ -68,11 +78,17 @@ class Sequence:
 
         return Sequence(self.positions[start:stop:step], self.name, self.desc)
 
-    def append(self, sequence) -> 'Sequence':
+    def append(self, sequence: 'Sequence') -> 'Sequence':
         """Returns a sequence where the given sequence is concatenated to self.
 
-        Raises ValueError if shapes of the positions property do not fit
-        together.
+        Args:
+            sequence (Sequence): The sequence to append.
+
+        Returns:
+            Sequence: The appended self sequence.
+
+        Raises:
+            ValueError: if shapes of the positions property don't fit together.
         """
         if (self.positions.shape[1] != sequence.positions.shape[1]
                 or self.positions.shape[2] != sequence.positions.shape[2]):
@@ -90,15 +106,20 @@ class Sequence:
 
         return self
 
-    def split(self, overlap: float = 0.0, subseq_size: int = 1) -> list:
-        """ Splits this sequence into batches of specified size and with
+    def split(self,
+              overlap: float = 0.0,
+              subseq_size: int = 1) -> List['Sequence']:
+        """Splits this sequence into batches of specified size and with
         defined overlap to each other. Returns a consecutive list of sequences
         with length of the given size.
 
-            Args:
-                overlap (float) = 0.0: How much of a batch overlaps neighboured
+        Args:
+            overlap (float) = 0.0: How much of a batch overlaps neighboured
                 batches.
-                subseq_size (int) = 1: The size of the batches.
+            subseq_size (int) = 1: The size of the batches.
+
+        Returns:
+            List[Sequence]: List of splitted Sequences.
         """
         if overlap < 0.0 or overlap > 0.99:
             raise ValueError(
@@ -112,6 +133,7 @@ class Sequence:
             raise ValueError(
                 'The formula int(subseq_size - subseq_size * overlap) should '
                 'not equal 0. Choose params that fulfill this condition.')
+
         n_steps = math.floor(len(self) / step_size)
         seqs = [
             self[step * step_size:step * step_size + subseq_size]
@@ -122,29 +144,32 @@ class Sequence:
             seq.name = f'{seq.name}__batch-{i}'
         return seqs
 
-    def to_motionimg(
-            self,
-            output_size=(256, 256),
-            minmax_pos_x=(-1000, 1000),
-            minmax_pos_y=(-1000, 1000),
-            minmax_pos_z=(-1000, 1000),
-            show_img=False,
-    ) -> np.ndarray:
-        """ Returns a Motion Image, that represents this sequences' positions.
+    def to_motionimg(self,
+                     output_size: Tuple[int, int] = (256, 256),
+                     minmax_pos_x: Tuple[int, int] = (-1000, 1000),
+                     minmax_pos_y: Tuple[int, int] = (-1000, 1000),
+                     minmax_pos_z: Tuple[int, int] = (-1000, 1000),
+                     show_img: bool = False) -> np.ndarray:
+        """Returns a Motion Image, that represents this sequences' positions.
 
-            Creates an Image from 3-D position data of motion sequences.
-            Rows represent a body part (or some arbitrary position instance).
-            Columns represent a frame of the sequence.
+        Creates an Image from 3-D position data of motion sequences.
+        Rows represent a body part (or some arbitrary position instance).
+        Columns represent a frame of the sequence.
 
-            Args:
-                output_size (int, int): The size of the output image in pixels
+        Args:
+            output_size Tuple[int, int]: The size of the output image in pixels
                 (height, width). Default=(200,200)
-                minmax_pos_x (int, int): The minimum and maximum x-positions.
+            minmax_pos_x Tuple[int, int]: The minimum and maximum x-positions.
                 Mapped to color range (0, 255).
-                minmax_pos_y (int, int): The minimum and maximum y-positions.
+            minmax_pos_y Tuple[int, int]: The minimum and maximum y-positions.
                 Mapped to color range (0, 255).
-                minmax_pos_z (int, int): The minimum and maximum z-positions.
+            minmax_pos_z Tuple[int, int]: The minimum and maximum z-positions.
                 Mapped to color range (0, 255).
+            show_img (bool): Whether to render a OpenCV GUI with displaying the
+                motion image.
+
+        Returns:
+            np.ndarray: The images as an array.
         """
         # Create Image container
         img = np.zeros((len(self.positions[0, :]), len(self.positions), 3),
@@ -171,8 +196,8 @@ class Sequence:
             cv2.destroyAllWindows()
         return img
 
-    # ? Should this function stay here?
-    def _filter_zero_frames(self, positions: np.ndarray) -> list:
+    # ? Should this function stay here? -> probably not (also no self use)
+    def _filter_zero_frames(self, positions: np.ndarray) -> List[bool]:
         """Returns a filter mask list to filter frames where all positions
         equal 0.0.
 
@@ -182,9 +207,9 @@ class Sequence:
 
         Args:
             positions (np.ndarray): The positions to filter
-            "Zero-Position-Frames" from.
+                "Zero-Position-Frames" from.
 
         Returns:
-            (list<boolean>): The filter list.
+            List[bool]: The filter list.
         """
         return [len(pos) != len(pos[np.all(pos == 0)]) for pos in positions]

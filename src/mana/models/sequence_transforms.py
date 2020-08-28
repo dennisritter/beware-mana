@@ -1,14 +1,23 @@
 """A collection class for SequenceTransforms."""
+from typing import Callable, List
+
+import numpy as np
+
 import mana.utils.math.sequence_transform as t
 
 
 class SequenceTransforms:
     """A collection class for SequenceTransforms."""
-    def __init__(self, transforms: list):
+    def __init__(self, transforms: List[Callable[[np.ndarray], np.ndarray]]):
+        """
+        Args:
+            List[Callable[[np.ndarray], np.ndarray]]: List of callable
+                transforms which in- and outputs np.ndarrays.
+        """
         self.transforms = transforms
 
     # * IISY body part model
-    #     body_parts = {
+    # body_parts = {
     #     "head": 0,
     #     "neck": 1,
     #     "shoulder_l": 2,
@@ -26,8 +35,9 @@ class SequenceTransforms:
     #     "ankle_l": 14,
     #     "ankle_r": 15,
     # }
+
     @staticmethod
-    def mir_to_iisy():
+    def mir_to_iisy() -> List[Callable[[np.ndarray], np.ndarray]]:
         """Returns a list of transforms that transform positions from the MIR
         coordinate system to the IISY coordinate system.
 
@@ -51,6 +61,10 @@ class SequenceTransforms:
             Y = Front
             Z = Up
         formal transform: [0, 1, 2] -> [0, -2, 1]
+
+        Returns:
+            List[Callable[[np.ndarray], np.ndarray]]: List of callable
+                transforms which in- and outputs np.ndarrays.
         """
         # * MIR body part model
         # body_parts_mir = {
@@ -74,7 +88,7 @@ class SequenceTransforms:
         return [t.FlipZ(), t.SwapYZ()]
 
     @staticmethod
-    def mka_to_iisy():
+    def mka_to_iisy() -> List[Callable[[np.ndarray], np.ndarray]]:
         """Returns a list of transforms that transform positions from the MKA
         coordinate system to the IISY coordinate system.
 
@@ -98,6 +112,10 @@ class SequenceTransforms:
             Y = Front
             Z = Up
         formal transform: [0, 1, 2] -> [-0, -2, -1]
+
+        Returns:
+            List[Callable[[np.ndarray], np.ndarray]]: List of callable
+                transforms which in- and outputs np.ndarrays.
         """
         # * MKA body part model
         # body_parts_mka = {
@@ -137,7 +155,7 @@ class SequenceTransforms:
         return [t.FlipX(), t.FlipY(), t.FlipZ(), t.SwapYZ()]
 
     @staticmethod
-    def hdm05_to_iisy():
+    def hdm05_to_iisy() -> List[Callable[[np.ndarray], np.ndarray]]:
         """Returns a list of transforms that transform positions from the MKA
         coordinate system to the IISY coordinate system.
 
@@ -166,6 +184,10 @@ class SequenceTransforms:
             Y = Front
             Z = Up
         formal transform [0, 1, 2] -> [0, -2, 1]
+
+        Returns:
+            List[Callable[[np.ndarray], np.ndarray]]: List of callable
+                transforms which in- and outputs np.ndarrays.
         """
         # * HDM05 body part model
         # body_parts_hdm05 = {

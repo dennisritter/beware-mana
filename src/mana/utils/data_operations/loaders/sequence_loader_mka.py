@@ -1,26 +1,29 @@
-"""An abstract loader class for specific sequence loaders."""
+"""MKA implementation for SequenceLoader class."""
 import json
+from typing import Type
+
 import numpy as np
+
 from mana.models.sequence import Sequence
 from mana.models.sequence_transforms import SequenceTransforms
 from mana.utils.data_operations.loaders.a_sequence_loader import ASequenceLoader
 
 
 class SequenceLoaderMKA(ASequenceLoader):
-    """A loader for Mocap Kinect Azure motion sequences.
-
-    Attributes:
-        transforms (SequenceTransforms): A SequenceTransforms instance that
-        holds transformations, that are applied after loading a sequence
-        (default = None).
-        sequence_class (class): A class that is inherited from Sequence or the
-        Sequence itself (default = Sequence).
-    """
+    """A loader for Mocap Kinect Azure motion sequences."""
     ALLOWED_SEQUENCE_CLASSES = [Sequence]
 
     def __init__(self,
                  transforms: SequenceTransforms = None,
-                 sequence_class=Sequence):
+                 sequence_class: Type[Sequence] = Sequence):
+        """
+        Args:
+            transforms (SequenceTransforms): A SequenceTransforms instance that
+                holds transformations, that are applied after loading a sequence
+                (default = None).
+            sequence_class (Type[Sequence]): A class that is inherited from
+                Sequence or the Sequence itself (default = Sequence).
+        """
         if sequence_class not in SequenceLoaderMKA.ALLOWED_SEQUENCE_CLASSES:
             raise ValueError(
                 f'This DataLoader is not abled to load instances of '
@@ -34,7 +37,7 @@ class SequenceLoaderMKA(ASequenceLoader):
             path: str = None,
             json_str: str = None,
             name: str = 'Sequence MKA',
-            desc=None) -> Sequence:
+            desc: str = None) -> Sequence:
         """Returns a sequence represented by a MKA json file or a MKA json
         string.
 
@@ -43,6 +46,9 @@ class SequenceLoaderMKA(ASequenceLoader):
             json_str (str): A json string representing a MKA sequence.
             name (str): The name of the returned sequence.
             desc (str): The description of the returned sequence.
+
+        Returns:
+            Sequence: A new loaded Sequence instance.
         """
         if not json_str and not path:
             raise ValueError('The load method expects either a file path to '

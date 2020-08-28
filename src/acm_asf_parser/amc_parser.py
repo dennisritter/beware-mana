@@ -1,11 +1,13 @@
-import numpy as np
-from transforms3d.euler import euler2mat
-from mpl_toolkits.mplot3d import Axes3D
-# import matplotlib.pyplot as plt
-"""SOURCE: https://github.com/CalciferZh/AMCParser
+"""Parse asf/amc files.
 
-Parse asf/amc files.
+SOURCE: https://github.com/CalciferZh/AMCParser
 """
+import numpy as np
+
+from transforms3d.euler import euler2mat
+
+# from mpl_toolkits.mplot3d import Axes3D
+# import matplotlib.pyplot as plt
 
 
 class Joint:
@@ -66,36 +68,38 @@ class Joint:
                     rotation[axis] = motion[self.name][idx]
                     idx += 1
             rotation = np.deg2rad(rotation)
-            self.matrix = self.parent.matrix.dot(self.C).dot(euler2mat(*rotation)).dot(self.Cinv)
-            self.coordinate = self.parent.coordinate + self.length * self.matrix.dot(self.direction)
+            self.matrix = self.parent.matrix.dot(self.C).dot(
+                euler2mat(*rotation)).dot(self.Cinv)
+            self.coordinate = self.parent.coordinate + self.length * self.matrix.dot(
+                self.direction)
         for child in self.children:
             child.set_motion(motion)
 
-    def draw(self):
-        joints = self.to_dict()
-        fig = plt.figure()
-        ax = Axes3D(fig)
+    # def draw(self):
+    #     joints = self.to_dict()
+    #     fig = plt.figure()
+    #     ax = Axes3D(fig)
 
-        ax.set_xlim3d(-50, 10)
-        ax.set_ylim3d(-20, 40)
-        ax.set_zlim3d(-20, 40)
+    #     ax.set_xlim3d(-50, 10)
+    #     ax.set_ylim3d(-20, 40)
+    #     ax.set_zlim3d(-20, 40)
 
-        xs, ys, zs = [], [], []
-        for joint in joints.values():
-            xs.append(joint.coordinate[0, 0])
-            ys.append(joint.coordinate[1, 0])
-            zs.append(joint.coordinate[2, 0])
-        plt.plot(zs, xs, ys, 'b.')
+    #     xs, ys, zs = [], [], []
+    #     for joint in joints.values():
+    #         xs.append(joint.coordinate[0, 0])
+    #         ys.append(joint.coordinate[1, 0])
+    #         zs.append(joint.coordinate[2, 0])
+    #     plt.plot(zs, xs, ys, 'b.')
 
-        for joint in joints.values():
-            child = joint
-            if child.parent is not None:
-                parent = child.parent
-                xs = [child.coordinate[0, 0], parent.coordinate[0, 0]]
-                ys = [child.coordinate[1, 0], parent.coordinate[1, 0]]
-                zs = [child.coordinate[2, 0], parent.coordinate[2, 0]]
-                plt.plot(zs, xs, ys, 'r')
-        plt.show()
+    #     for joint in joints.values():
+    #         child = joint
+    #         if child.parent is not None:
+    #             parent = child.parent
+    #             xs = [child.coordinate[0, 0], parent.coordinate[0, 0]]
+    #             ys = [child.coordinate[1, 0], parent.coordinate[1, 0]]
+    #             zs = [child.coordinate[2, 0], parent.coordinate[2, 0]]
+    #             plt.plot(zs, xs, ys, 'r')
+    #     plt.show()
 
     def to_dict(self):
         ret = {self.name: self}
