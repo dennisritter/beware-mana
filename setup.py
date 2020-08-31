@@ -14,7 +14,17 @@ setuptools.setup(
     url="https://gitlab.beuth-hochschule.de/iisy/mana",
     package_dir={'': 'src'},
     packages=setuptools.find_packages(where='src'),
-    install_requires=['numpy', 'scikit-learn', 'networkx'],
+    install_requires=[
+        'numpy',
+        'scikit-learn',
+        'plotly>=4.9',
+        'chart-studio>=1',
+        'kaleido',
+        'opencv-python',
+        'transforms3d',
+        'networkx',
+        # 'matplotlib',
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
