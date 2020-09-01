@@ -269,11 +269,8 @@ def rotation_from_vectors(v_from: np.ndarray, v_to: np.ndarray) -> np.ndarray:
 
     v_from = norm_vec(v_from)
     v_to = norm_vec(v_to)
-    # * Evaluate why we have to turn vectors (v_from, v_to) gives wrong results
-    # Orthogonal vector returns the "wrong"/mirrored rotation axis for the given
-    # angle, which results in rotating v_from in the opposite direction.
-    alpha = angle(v_to, v_from)
-    rotation_axis = orthogonal_vector(v_to, v_from)
+    alpha = angle(v_from, v_to)
+    rotation_axis = orthogonal_vector(v_from, v_to)
     rotation_matrix = rotation(rotation_axis, alpha)
     return rotation_matrix
 
@@ -354,7 +351,7 @@ def bmvm(m: np.ndarray, v: np.ndarray) -> np.ndarray:
 
     # Add wrapping dimension for each element in v[i] -> matrix multiplication
     # with @ operator -> remove arbitrary dimension
-    return (m @ v.reshape(v.shape[0], v.shape[1], -1)).squeeze()
+    return (m @ np.expand_dims(v, -1)).squeeze()
 
 
 def projection_matrix(origin: np.ndarray, x_dir: np.ndarray,
