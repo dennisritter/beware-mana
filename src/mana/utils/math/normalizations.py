@@ -149,15 +149,17 @@ def pose_orientation(array: np.ndarray,
     # compute rotation angle based on rotation vectors and plane orthogonals
     alphas = mt.angle_complementary(rotation_vectors, plane_normals)
 
-    # compute rotation axis from rotation vector and plane normals
-    # If 1< rotation vectors but only one plane normal given, make an array of
-    # same plane normals for later broadcasting
+    # If more than one rotation vector is given but only one plane normal is
+    # present, repeat to an array of (same) plane normals.
     if plane_normals.shape[0] == 1 and rotation_vectors.shape[0] > 1:
         plane_normals = np.full(rotation_vectors.shape, (plane_normals[0]))
-    # If 1< plane normals but only one plane normal given, make an array of
-    # same rotation vectors for later broadcasting
+
+    # If more than one plane normal is given but only one rotation vector is
+    # present, repeat to an array of (same) rotation vectors.
     if rotation_vectors.shape[0] == 1 and plane_normals.shape[0] > 1:
         rotation_vectors = np.full(plane_normals.shape, (rotation_vectors[0]))
+
+    # compute rotation axis from rotation vector and plane normals
     axes = np.abs(mt.orthogonal_vector(rotation_vectors, plane_normals))
 
     # create rotation matrix about axis
