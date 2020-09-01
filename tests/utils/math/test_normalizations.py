@@ -210,7 +210,7 @@ def test_pose_position(var, pos, expected):
         (
             np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
                       [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
-            np.array([[-2, 2, 0]]),
+            np.array([-2, 2, 0]),
             np.array([[0, 1, 0], [0, 1, 0]]),
             np.array([0, 0, 0]),
             np.array([[
