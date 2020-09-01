@@ -499,8 +499,8 @@ def test_rotation_from_vectors_single(v_from, v_to, expected):
     """Test whether a rotation to transform a vector1 to be another vector2
     actually results in the vector2 when applied to vector1.
     """
-    result = t.rotation_from_vectors(v_from, v_to)
-    np.testing.assert_allclose(t.norm_vec(v_from) @ result,
+    rotation = t.rotation_from_vectors(v_from, v_to)
+    np.testing.assert_allclose(rotation @ t.norm_vec(v_from),
                                t.norm_vec(expected),
                                atol=1e-7,
                                verbose=True)
@@ -544,9 +544,9 @@ def test_rotation_from_vectors_multi(v_from, v_to, expected):
     actually results in the vector2 when applied to vector1 for multiple pairs
     of vectors at once.
     """
-    result = t.rotation_from_vectors(v_from, v_to)
+    rotation = t.rotation_from_vectors(v_from, v_to)
     np.testing.assert_allclose(
-        np.array([t.norm_vec(v) @ r for v, r in zip(v_from, result)]),
+        np.array([r @ t.norm_vec(v) for v, r in zip(v_from, rotation)]),
         t.norm_vec(expected),
         atol=1e-7,
         verbose=True,
