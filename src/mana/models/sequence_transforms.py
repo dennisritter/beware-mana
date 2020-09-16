@@ -164,7 +164,7 @@ class SequenceTransforms:
         # }
         sequence_transforms = []
         if body_parts:
-            sequence_transforms.append(t.mka_to_iisy_bodyparts())
+            sequence_transforms.append(t.MkaToIisyBodyParts())
         if coordinate_system:
             sequence_transforms += [t.FlipX(), t.FlipY(), t.FlipZ(), t.SwapYZ()]
         return sequence_transforms
