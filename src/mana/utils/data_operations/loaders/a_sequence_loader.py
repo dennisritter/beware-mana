@@ -59,5 +59,5 @@ class ASequenceLoader(metaclass=ABCMeta):
                     f'{positions.shape[2]}.')
             trans_positions = positions
             for transform in self.transforms.transforms:
-                trans_positions = transform(positions)
+                trans_positions = transform(trans_positions)
             return trans_positions
