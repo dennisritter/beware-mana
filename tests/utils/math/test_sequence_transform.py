@@ -69,3 +69,15 @@ def test_flip_z(start_positions, expected):
     flip_z = st.FlipZ()
     transformed_positions = flip_z(start_positions)
     np.testing.assert_equal(transformed_positions, expected)
+
+
+@pytest.mark.parametrize('start_positions, expected', [(
+    np.zeros((1, 32, 3)),
+    np.zeros((1, 16, 3)),
+)])
+def test_mka_to_iisy_bodyparts(start_positions, expected):
+    """Test whether the number of body parts (positions.shape[1]) changes from
+    32 to 16"""
+    mka_to_iisy_bodyparts = st.MkaToIisyBodyParts()
+    transformed_positions = mka_to_iisy_bodyparts(start_positions)
+    np.testing.assert_equal(transformed_positions, expected)
