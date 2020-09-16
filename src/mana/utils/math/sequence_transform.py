@@ -108,7 +108,7 @@ class mka_to_iisy_bodyparts:
 
         Will Transform MKA human motion model (32 body parts) into the iisy
         body part model (16 body parts).
-        
+
         # * MKA body part model (ORIGIN)
         # body_parts_mka = {
         #     "Pelvis": 0,
