@@ -45,7 +45,7 @@ class SequenceTransforms:
         relative to the human actors viewing direction in the anatomical
         normal position
         (https://en.wikipedia.org/wiki/Standard_anatomical_position).
-        Conseuqently, flipping and swapping axes may also flip the directions
+        Consequently, flipping and swapping axes may also flip the directions
         of other axes too. A solution to prevent this is:
         1. Flip all axes so that they point RIGHT, FRONT and BACK
         (or your targeted directions)
@@ -88,15 +88,19 @@ class SequenceTransforms:
         return [t.FlipZ(), t.SwapYZ()]
 
     @staticmethod
-    def mka_to_iisy() -> List[Callable[[np.ndarray], np.ndarray]]:
+    def mka_to_iisy(
+            coordinate_system: bool = True,
+            body_parts: bool = True
+    ) -> List[Callable[[np.ndarray], np.ndarray]]:
         """Returns a list of transforms that transform positions from the MKA
-        coordinate system to the IISY coordinate system.
+        coordinate system to the IISY coordinate system as well as the MKA body
+        part model to the IISY body part model.
 
         Note that the described coordinate system directions are described
         relative to the human actors viewing direction in the anatomical
         normal position
         (https://en.wikipedia.org/wiki/Standard_anatomical_position).
-        Conseuqently, flipping and swapping axes may also flip the directions
+        Consequently, flipping and swapping axes may also flip the directions
         of other axes too. A solution to prevent this is:
         1. Flip all axes so that they point RIGHT, FRONT and BACK
         (or your targeted directions)
@@ -112,6 +116,12 @@ class SequenceTransforms:
             Y = Front
             Z = Up
         formal transform: [0, 1, 2] -> [-0, -2, -1]
+
+        Args:
+            coordinate_system (bool): Decides whether to transform the
+                coordinate system axes directions. (default=True)
+            body_parts (bool): Decides whether to transform the body part model.
+                (default=True)
 
         Returns:
             List[Callable[[np.ndarray], np.ndarray]]: List of callable
@@ -152,7 +162,12 @@ class SequenceTransforms:
         #     "EyeRight": 30,
         #     "EarRight": 31
         # }
-        return [t.FlipX(), t.FlipY(), t.FlipZ(), t.SwapYZ()]
+        sequence_transforms = []
+        if body_parts:
+            sequence_transforms.append(t.mka_to_iisy_bodyparts())
+        if coordinate_system:
+            sequence_transforms += [t.FlipX(), t.FlipY(), t.FlipZ(), t.SwapYZ()]
+        return sequence_transforms
 
     @staticmethod
     def hdm05_to_iisy() -> List[Callable[[np.ndarray], np.ndarray]]:
@@ -163,7 +178,7 @@ class SequenceTransforms:
         relative to the human actors viewing direction in the anatomical
         normal position
         (https://en.wikipedia.org/wiki/Standard_anatomical_position).
-        Conseuqently, flipping and swapping axes may also flip the directions
+        Consequently, flipping and swapping axes may also flip the directions
         of other axes too. A solution to prevent this is:
         1. Flip all axes so that they point RIGHT, FRONT and BACK
         (or your targeted directions)
