@@ -101,7 +101,7 @@ class FlipZ:
         return positions
 
 
-class mka_to_iisy_bodyparts:
+class MkaToIisyBodyParts:
     """Callable transform class to flip z-values."""
     def __call__(self, positions: np.ndarray) -> np.ndarray:
         """Transforms MKA recorded motion data into the iisy body part format.
