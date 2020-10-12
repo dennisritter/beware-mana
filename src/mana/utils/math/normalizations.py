@@ -35,7 +35,7 @@ def pose_mean(array: np.ndarray, mean_array: np.ndarray = None) -> np.ndarray:
     if mean_array is not None and mean_array.shape[-1] != array.shape[-1]:
         raise ValueError(
             'Position array must match the input arrays number of axis!')
-    return array - np.mean(array, axis=0)
+    return array - np.mean(array, axis=(0, 1))
 
 
 def pose_position(array: np.ndarray, position: np.ndarray) -> np.ndarray:
