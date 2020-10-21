@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-import mana.utils.math.sequence_transform as st
+import mana.models.sequence_transforms as st
 
 
 @pytest.mark.parametrize('start_positions, expected', [(
