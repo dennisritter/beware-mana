@@ -1,4 +1,4 @@
-'''Unittests for transformation functions.'''
+"""Unittests for transformation functions."""
 import json
 import pytest
 
