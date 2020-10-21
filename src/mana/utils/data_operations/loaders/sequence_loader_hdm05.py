@@ -58,9 +58,8 @@ class SequenceLoaderHDM05(ASequenceLoader):
                              f'\n[amc_path={asf_path}]')
         joints = amc_asf_parser.parse_asf(asf_path)
         motions = amc_asf_parser.parse_amc(amc_path)
-
         positions = []
-        for _, frame in enumerate(motions):
+        for frame, _ in enumerate(motions):
             joints['root'].set_motion(motions[frame])
             positions.append([joints[joint].coordinate for joint in joints])
         positions = np.array(positions).squeeze()
