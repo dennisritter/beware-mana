@@ -172,36 +172,15 @@ def transformation(rotations: np.ndarray = None,
         translation (np.ndarray): A 3-D translation vector or an array of such
             vectors. (default=np.zeros(3))
     """
-    # Check whether at least one roations or translation is given.
-    if not isinstance(rotations, np.ndarray) and not isinstance(
-            translations, np.ndarray):
-        raise ValueError('rotation and translation must be of type '
-                         'numpy.ndarray')
-
-    ## Check whether no or one rotations/translations present and extend if
-    ## dimensionality constraints require it.
-    # No rotation given
     if rotations is None:
-        # Just init for now and check for necessary extensions later
         rotations = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    # No translation given
     if translations is None:
-        # Just init for now and check for necessary extensions later
         translations = np.array([0, 0, 0])
 
-    # One rotation given
-    if rotations.squeeze().ndim == 2:
-        rotations = rotations.squeeze()
-        # If multiple translations given, default same number of rotations
-        if translations.ndim == 2:
-            rotations = np.full((translations.shape[0], 3, 3), rotations)
-    # One translation given
-    if translations.squeeze().ndim == 1:
-        translations = translations.squeeze()
-        # If multiple rotations given, default same number of translations
-        if rotations.ndim == 3:
-            translations = np.full((rotations.shape[0], 3), translations)
-
+    if not isinstance(rotations, np.ndarray) or not isinstance(
+            translations, np.ndarray):
+        raise ValueError('rotation and tranlastion must be of type '
+                         'numpy.ndarray')
     if rotations.ndim > 3:
         raise ValueError('rotation must be either 2- or 3-dimensional '
                          '(v.ndim == 2|3)')
