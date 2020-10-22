@@ -5,6 +5,17 @@ import pytest
 import mana.models.sequence_transforms as st
 
 
+@pytest.mark.parametrize('transforms, expected', [
+    ([[st.FlipX(), st.FlipY(), st.FlipZ()], [st.FlipX, st.FlipY, st.FlipZ]]),
+])
+def test_sequence_transforms_transforms(transforms, expected):
+    """Test whether the transforms attribute of SequenceTransforms contains
+    instances of given transforms"""
+    sequence_transforms = st.SequenceTransforms(transforms)
+    transform_classes = [type(t) for t in sequence_transforms.transforms]
+    assert transform_classes == expected
+
+
 @pytest.mark.parametrize('start_positions, expected', [(
     np.array([[[1, 2, 3], [1, 2, 3]], [[1, 2, 3], [1, 2, 3]]]),
     np.array([[[2, 1, 3], [2, 1, 3]], [[2, 1, 3], [2, 1, 3]]]),
