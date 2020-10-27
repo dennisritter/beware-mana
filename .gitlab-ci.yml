@@ -3,9 +3,6 @@ image: python:3.8
 stages:
   - test
 
-before_script:
-  - ulimit -s 20000
-
 test:
   stage: test
   only:
