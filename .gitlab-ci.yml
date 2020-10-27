@@ -10,8 +10,9 @@ test:
     # - merge-requests
     # - develop
   script:
-    - pip install tox
-    - tox
+    - pip install pytest pytest-cov
+    - python setup.py install
+    - pytest --cov=mana --cov-report xml
   artifacts:
     reports:
-      cobertura: coverage.xml
+      cobertura: report.xml
