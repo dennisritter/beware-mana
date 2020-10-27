@@ -3,6 +3,9 @@ image: python:3.8
 stages:
   - test
 
+before_script:
+  - ulimit -s
+
 test:
   stage: test
   only:
