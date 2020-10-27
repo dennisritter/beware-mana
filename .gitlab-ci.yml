@@ -4,7 +4,7 @@ stages:
   - test
 
 before_script:
-  - ulimit -s
+  - ulimit -s 20000
 
 test:
   stage: test
