@@ -1,0 +1,17 @@
+image: python:3.8
+
+stages:
+  - test
+
+test:
+  stage: test
+  only:
+    - feat-ci-test
+    # - merge-requests
+    # - develop
+  script:
+    - pip install tox
+    - tox
+  artifacts:
+    reports:
+      cobertura: coverage.xml
