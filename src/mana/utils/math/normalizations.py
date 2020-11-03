@@ -111,7 +111,7 @@ def pose_orientation(array: np.ndarray,
     """
     if not isinstance(axis, np.ndarray):
         if not axis:
-            axis = np.array([0, 0, 0])
+            axis = np.array([0, 0, 1])
     if not isinstance(origin, np.ndarray):
         if not origin:
             origin = np.array([0, 0, 0])
@@ -173,10 +173,19 @@ def pose_orientation(array: np.ndarray,
 
     # compute cross product from vectors to rotation axis (plane normals)
     v_from_cross_axis = mt.orthogonal_vector(v_from, axis)
-    v_to_cross_axis = mt.orthogonal_vector(v_to, axis)
+    v_to_cross_axis = mt.orthogonal_vector(axis, v_to)
 
     # compute angle between cross products
     alpha = mt.angle(v_from_cross_axis, v_to_cross_axis)
+
+    # Compute new axis based on orthogonal from v_from_cross_axis and
+    # v_to_cross_axis (may be negative or positive input axis).
+    # This is necessary to define the correct rotation direction.
+    # Only apply to values where angle != pi (180 degree)
+    _filter = alpha != np.pi
+    if len(_filter) == 1 and not _filter == False:
+        axis[_filter] = mt.orthogonal_vector(v_from_cross_axis[_filter],
+                                             v_to_cross_axis[_filter])
 
     # rotation matrix
     rotation = mt.rotation(axis, alpha)
