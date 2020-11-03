@@ -93,7 +93,6 @@ def test_pose_mean(array, mean, expected):
     accordingly."""
     # using pytest approx to avoid floating point arithmetic issues
     assert pytest.approx(n.pose_mean(array, mean)) == expected
-    # np.testing.assert_array_almost_equal(n.pose_mean2(array, mean) == expected)
 
 
 @pytest.mark.parametrize(
@@ -183,7 +182,7 @@ def test_pose_position(array, pos, expected):
             np.array([1, 0, 0]),
             np.array([0, 1, 0]),  # rotate around y
             np.array([0, 0, 0]),
-            np.array([[[4, 1, 2], [2, 3, 2]]]),  # v1 and v2 are parallel to y
+            np.array([[[-4, 1, -2], [-2, 3, -2]]]),  # v1 - v2 is parallel to y
         ),  # different rotation axis
         (
             np.array([[[3, 2, 2], [3, 1, 3]], [[3, 2, 2], [3, 1, 3]]]),
@@ -223,7 +222,7 @@ def test_pose_position(array, pos, expected):
             np.array([1, 0, 0]),
             np.array([[0, 0, 1], [0, 1, 0]]),
             np.array([0, 0, 0]),
-            np.array([[[-2, 3, 2], [-1, 3, 3]], [[4, 1, 2], [2, 3, 2]]]),
+            np.array([[[-2, 3, 2], [-1, 3, 3]], [[-4, 1, -2], [-2, 3, -2]]]),
         ),  # 2 frames 2 axis
         (
             np.array([[[3, 2, 2], [3, 1, 3]], [[3, 2, 2], [3, 1, 3]]]),
