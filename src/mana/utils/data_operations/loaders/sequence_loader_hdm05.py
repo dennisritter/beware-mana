@@ -3,11 +3,10 @@ from typing import Type
 
 import numpy as np
 
-import acm_asf_parser.amc_parser as amc_asf_parser
 from mana.models.sequence import Sequence
 from mana.models.sequence_transforms import SequenceTransforms
-from mana.utils.data_operations.loaders.a_sequence_loader import \
-    ASequenceLoader
+from mana.utils.data_operations.loaders.a_sequence_loader import ASequenceLoader
+from mana.utils.data_operations.loaders.amc_parser import parse_amc, parse_asf
 
 
 class SequenceLoaderHDM05(ASequenceLoader):
@@ -56,8 +55,8 @@ class SequenceLoaderHDM05(ASequenceLoader):
                              f' a path to a AMC file but at least one path were'
                              f' not given. \n[asf_path={asf_path}]'
                              f'\n[amc_path={asf_path}]')
-        joints = amc_asf_parser.parse_asf(asf_path)
-        motions = amc_asf_parser.parse_amc(amc_path)
+        joints = parse_asf(asf_path)
+        motions = parse_amc(amc_path)
         positions = []
         for frame, _ in enumerate(motions):
             joints['root'].set_motion(motions[frame])

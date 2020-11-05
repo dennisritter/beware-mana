@@ -1,6 +1,7 @@
-"""Parse asf/amc files.
+"""Containing code to parse asf/amc files.
 
-SOURCE: https://github.com/CalciferZh/AMCParser
+This is a modified and slightly extended version of
+https://github.com/CalciferZh/AMCParser
 """
 import numpy as np
 
