@@ -98,8 +98,6 @@ class Sequence:
                 'ensure that the second and third axes share the same '
                 'dimensionality.')
 
-        # Copy the given sequence to not change it implicitly
-        sequence = sequence[:]
         # concatenate positions
         self.positions = np.concatenate((self.positions, sequence.positions),
                                         axis=0)
