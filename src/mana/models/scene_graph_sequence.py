@@ -1,32 +1,14 @@
 """WIP: Contains the BewARe sequence model including the scenegraph and angle
 computation."""
 import copy
-import json
-from typing import List, Union
+from typing import Union
 
 import networkx as nx
 import numpy as np
 from scipy.spatial.transform import Rotation
 
+from mana.models.sequence import Sequence
 import mana.utils.math.transformations as mt
-
-
-def _filter_zero_frames(positions: np.ndarray) -> List[bool]:
-    """Returns a filter mask list to filter frames where all positions
-    equal 0.0.
-
-    Checks whether all coordinates for a frame are 0
-        True -> keep this frame
-        False -> remove this frame
-
-    Args:
-        positions (np.ndarray): The positions to filter
-            "Zero-Position-Frames" from
-
-    Returns:
-        List[bool]: The filter list.
-    """
-    return [len(pos) != len(pos[np.all(pos == 0)]) for pos in positions]
 
 
 def _pelvis_coordinate_system(pelvis: np.ndarray, torso: np.ndarray,
@@ -71,12 +53,14 @@ def _pelvis_coordinate_system(pelvis: np.ndarray, torso: np.ndarray,
     return [(origin, [vec_x, vec_y, vec_z])]
 
 
-class SceneGraphSequence:
+class SceneGraphSequence(Sequence):
     """Represents a motion sequence."""
     def __init__(self,
                  positions: np.ndarray,
                  scene_graph: nx.DiGraph = None,
-                 name: str = 'sequence'):
+                 body_parts: dict = None,
+                 name: str = 'sequence',
+                 desc: str = None):
         """
         Args:
             positions (list): The tracked body part positions for each frame.
@@ -84,8 +68,12 @@ class SceneGraphSequence:
                 hierarchy between body parts that will be filled with related
                 data.
             name (str): The name of this sequence.
+            desc (str): A description of this sequence.
         """
-        self.name = name
+        super(SceneGraphSequence, self).__init__(positions, name, desc)
+
+        self.positions = self._get_pelvis_cs_positions(self.positions)
+
         # Number, order and label of tracked body parts
         self.body_parts = {
             "head": 0,
@@ -104,56 +92,30 @@ class SceneGraphSequence:
             "knee_r": 13,
             "ankle_l": 14,
             "ankle_r": 15,
-        }
-        # A directed graph that defines the hierarchy between human body parts
-        self.scene_graph = nx.DiGraph([
-            ("pelvis", "torso"),
-            ("torso", "neck"),
-            ("neck", "head"),
-            ("neck", "shoulder_l"),
-            ("shoulder_l", "elbow_l"),
-            ("elbow_l", "wrist_l"),
-            ("neck", "shoulder_r"),
-            ("shoulder_r", "elbow_r"),
-            ("elbow_r", "wrist_r"),
-            ("pelvis", "hip_l"),
-            ("hip_l", "knee_l"),
-            ("knee_l", "ankle_l"),
-            ("pelvis", "hip_r"),
-            ("hip_r", "knee_r"),
-            ("knee_r", "ankle_r"),
-        ])
-
-        # A Boolean mask list to exclude all frames, where all positions are 0.0
-        zero_frames_filter_list = _filter_zero_frames(positions)
-
-        # Defines positions of each bodypart
-        # 1. Dimension = Time
-        # 2. Dimension = Bodypart
-        # 3. Dimension = x, y, z
-        # Example: [
-        #           [[f1_bp1_x, f1_bp1_x, f1_bp1_x],
-        #            [f1_bp2_x, f1_bp2_x, f1_bp2_x], ...],
-        #           [[f2_bp1_x, f2_bp1_x, f2_bp1_x],
-        #            [f2_bp2_x, f2_bp2_x, f2_bp2_x], ...],
-        #           ...
-        #          ]
-        # shape: (num_body_parts, num_keypoints, xyz)
-        self.positions = self._get_pelvis_cs_positions(
-            np.array(positions)[zero_frames_filter_list])
+        } if body_parts is None else body_parts
 
         if scene_graph is not None:
             self.scene_graph = scene_graph
         else:
+            # A directed graph that defines the hierarchy between human body parts
+            self.scene_graph = nx.DiGraph([
+                ("pelvis", "torso"),
+                ("torso", "neck"),
+                ("neck", "head"),
+                ("neck", "shoulder_l"),
+                ("shoulder_l", "elbow_l"),
+                ("elbow_l", "wrist_l"),
+                ("neck", "shoulder_r"),
+                ("shoulder_r", "elbow_r"),
+                ("elbow_r", "wrist_r"),
+                ("pelvis", "hip_l"),
+                ("hip_l", "knee_l"),
+                ("knee_l", "ankle_l"),
+                ("pelvis", "hip_r"),
+                ("hip_r", "knee_r"),
+                ("knee_r", "ankle_r"),
+            ])
             self._fill_scene_graph(self.scene_graph, self.positions)
-
-    def __len__(self) -> int:
-        """Returns the length of the sequence.
-
-        Returns:
-            int: the length of the sequence.
-        """
-        return len(self.positions)
 
     def __getitem__(self, item: Union[slice, tuple,
                                       int]) -> 'SceneGraphSequence':
@@ -206,7 +168,63 @@ class SceneGraphSequence:
                         edge2][data_list][start:stop:step]
 
         return SceneGraphSequence(self.positions[start:stop:step], scene_graph,
-                                  self.name)
+                                  self.name, self.desc)
+
+    def append(self, sequence: 'SceneGraphSequence') -> 'SceneGraphSequence':
+        """Returns the merged two sequences.
+
+            Args:
+                sequence (SceneGraphSequence): The Sequence to merge (append).
+
+            Returns:
+                SceneGraphSequence: The inplace merged sequences.
+
+            Raises:
+                ValueError: if shapes of the positions property don't fit together.
+            """
+        super(SceneGraphSequence, self).append(sequence)
+
+        # Copy the given sequence to not change it implicitly
+        sequence = sequence[:]
+
+        for node in sequence.scene_graph.nodes:
+            merge_node_data = sequence.scene_graph.nodes[node]
+            node_data = self.scene_graph.nodes[node]
+            # Concatenate Coordinate System data
+            node_data['coordinate_system']['origin'] = np.concatenate(
+                (node_data['coordinate_system']['origin'],
+                 merge_node_data['coordinate_system']['origin']))
+            node_data['coordinate_system']['x_axis'] = np.concatenate(
+                (node_data['coordinate_system']['x_axis'],
+                 merge_node_data['coordinate_system']['x_axis']))
+            node_data['coordinate_system']['y_axis'] = np.concatenate(
+                (node_data['coordinate_system']['y_axis'],
+                 merge_node_data['coordinate_system']['y_axis']))
+            node_data['coordinate_system']['z_axis'] = np.concatenate(
+                (node_data['coordinate_system']['z_axis'],
+                 merge_node_data['coordinate_system']['z_axis']))
+            # Concatenate angle data
+            if 'rotation_matrix' in node_data['angles'].keys():
+                node_data['angles']['rotation_matrix'] = np.concatenate(
+                    (node_data['angles']['rotation_matrix'],
+                     merge_node_data['angles']['rotation_matrix']))
+                node_data['angles']['euler_xyz'] = np.concatenate(
+                    (node_data['angles']['euler_xyz'],
+                     merge_node_data['angles']['euler_xyz']))
+                node_data['angles']['euler_yxz'] = np.concatenate(
+                    (node_data['angles']['euler_yxz'],
+                     merge_node_data['angles']['euler_yxz']))
+                node_data['angles']['euler_zxz'] = np.concatenate(
+                    (node_data['angles']['euler_zxz'],
+                     merge_node_data['angles']['euler_zxz']))
+        for edge1, edge2 in self.scene_graph.edges:
+            merge_edge_data = sequence.scene_graph[edge1][edge2]
+            edge_data = self.scene_graph[edge1][edge2]
+            edge_data['transformation'] = np.concatenate(
+                (edge_data['transformation'],
+                 merge_edge_data['transformation']))
+
+        return self
 
     def _get_pelvis_cs_positions(self, positions: np.ndarray) -> np.ndarray:
         """Transforms all points in positions parameter so they are relative to
@@ -414,174 +432,3 @@ class SceneGraphSequence:
                                             positions)
 
         return
-
-    def to_json(self) -> str:
-        """Returns the sequence instance as a json-formatted string.
-
-        Returns:
-            str: the json-formatted sequence string
-
-        Raises:
-            NotImplementedError
-        """
-        raise NotImplementedError
-
-        # TODO: How should the output look like?
-        #       serialize scene_graph. All ndarrays must be transferred to
-        #       lists before.
-        # json_dict = {
-        #     'name': self.name,
-        #     'body_parts': self.body_parts,
-        #     'positions': self.positions.tolist(),
-        #     'scene_graph': nx.readwrite.json_graph.adjacency_data(
-        #                           self.scene_graph)
-        # }
-        # return json.dumps(json_dict)
-
-    @staticmethod
-    def from_mka_file(path: str,
-                      name: str = 'SceneGraphSequence') -> 'SceneGraphSequence':
-        """Loads an sequence .json file in Mocap Kinect Azure format and
-        returns an SceneGraphSequence object.
-
-        Args:
-            path (str): Path to the json file
-            name (str): The name of the Sequence (defaults to
-                'SceneGraphSequence')
-
-        Returns:
-            SceneGraphSequence: a new SceneGraphSequence instance from the
-                given input.
-        """
-        with open(path, 'r') as sequence_file:
-            return SceneGraphSequence.from_mka_json(sequence_file.read(), name)
-
-    @classmethod
-    def from_mka_json(cls,
-                      json_data: Union[str, dict],
-                      name: str = 'SceneGraphSequence') -> 'SceneGraphSequence':
-        """Loads an sequence from a json string in Mocap Intel RealSense format
-        and returns an SceneGraphSequence object.
-
-        Args:
-            json_data (Union[str, dict]): The json-formatted string or dict.
-            name (str): The name of the Sequence (defaults to
-                'SceneGraphSequence')
-
-        Returns:
-            SceneGraphSequence: a new SceneGraphSequence instance from the
-                given input.
-        """
-        # load, parse file from json and return class
-        if isinstance(json_data, str):
-            json_dict = json.loads(json_data)
-        else:
-            json_dict = json_data
-
-        positions = np.array(json_dict["positions"])
-        # timestamps = np.array(json_dict["timestamps"])
-
-        # reshape positions to 3d array
-        positions = np.reshape(
-            positions,
-            (np.shape(positions)[0], int(np.shape(positions)[1] / 3), 3))
-
-        # Center Positions by subtracting the mean of each coordinate
-        positions[:, :, 0] -= np.mean(positions[:, :, 0])
-        positions[:, :, 1] -= np.mean(positions[:, :, 1])
-        positions[:, :, 2] -= np.mean(positions[:, :, 2])
-
-        # MKA X points left -> HMA X points right
-        # MKA Y points down -> HMA Y points front
-        # MKA Z points backwards -> HMA Z points up
-        # Switch Y/Z
-        y_positions_mka = positions[:, :, 1].copy()
-        z_positions_mka = positions[:, :, 2].copy()
-        positions[:, :, 1] = z_positions_mka
-        positions[:, :, 2] = y_positions_mka
-        # Flip X
-        positions[:, :, 0] *= -1
-        # Flip Y
-        positions[:, :, 1] *= -1
-        # Flip Z
-        positions[:, :, 2] *= -1
-
-        # The target Body Part format
-
-        # Change body part indices according to the target body part format
-        # TODO: Adjust scene graph format to fit optimal kinect azure format
-        positions_mka = positions.copy()
-        positions[:, 0, :] = positions_mka[:, 26, :]  # "head": 0
-        positions[:, 1, :] = positions_mka[:, 3, :]  # "neck": 1
-        positions[:, 2, :] = positions_mka[:, 5, :]  # "shoulder_l": 2
-        positions[:, 3, :] = positions_mka[:, 12, :]  # "shoulder_r": 3
-        positions[:, 4, :] = positions_mka[:, 6, :]  # "elbow_l": 4
-        positions[:, 5, :] = positions_mka[:, 13, :]  # "elbow_r": 5
-        positions[:, 6, :] = positions_mka[:, 7, :]  # "wrist_l": 6
-        positions[:, 7, :] = positions_mka[:, 14, :]  # "wrist_r": 7
-        positions[:, 8, :] = positions_mka[:, 1, :]  # "torso": 8 -> SpineNavel
-        positions[:, 9, :] = positions_mka[:, 0, :]  # "pelvis": 9
-        positions[:, 10, :] = positions_mka[:, 18, :]  # "hip_l": 10
-        positions[:, 11, :] = positions_mka[:, 22, :]  # "hip_r": 11
-        positions[:, 12, :] = positions_mka[:, 19, :]  # "knee_l": 12
-        positions[:, 13, :] = positions_mka[:, 23, :]  # "knee_r": 13
-        positions[:, 14, :] = positions_mka[:, 20, :]  # "ankle_l": 14
-        positions[:, 15, :] = positions_mka[:, 24, :]  # "ankle_r": 15
-
-        positions = positions[:, :16]
-
-        return cls(positions, name=name)
-
-    def merge(self, sequence: 'SceneGraphSequence') -> 'SceneGraphSequence':
-        """Returns the merged two sequences.
-
-        Args:
-            sequence (SceneGraphSequence): The Sequence to merge (append).
-
-        Returns:
-            SceneGraphSequence: The inplace merged sequences.
-        """
-        # Copy the given sequence to not change it implicitly
-        sequence = sequence[:]
-        # concatenate positions, timestamps and angles
-        self.positions = np.concatenate((self.positions, sequence.positions),
-                                        axis=0)
-
-        for node in sequence.scene_graph.nodes:
-            merge_node_data = sequence.scene_graph.nodes[node]
-            node_data = self.scene_graph.nodes[node]
-            # Concatenate Coordinate System data
-            node_data['coordinate_system']['origin'] = np.concatenate(
-                (node_data['coordinate_system']['origin'],
-                 merge_node_data['coordinate_system']['origin']))
-            node_data['coordinate_system']['x_axis'] = np.concatenate(
-                (node_data['coordinate_system']['x_axis'],
-                 merge_node_data['coordinate_system']['x_axis']))
-            node_data['coordinate_system']['y_axis'] = np.concatenate(
-                (node_data['coordinate_system']['y_axis'],
-                 merge_node_data['coordinate_system']['y_axis']))
-            node_data['coordinate_system']['z_axis'] = np.concatenate(
-                (node_data['coordinate_system']['z_axis'],
-                 merge_node_data['coordinate_system']['z_axis']))
-            # Concatenate angle data
-            if 'rotation_matrix' in node_data['angles'].keys():
-                node_data['angles']['rotation_matrix'] = np.concatenate(
-                    (node_data['angles']['rotation_matrix'],
-                     merge_node_data['angles']['rotation_matrix']))
-                node_data['angles']['euler_xyz'] = np.concatenate(
-                    (node_data['angles']['euler_xyz'],
-                     merge_node_data['angles']['euler_xyz']))
-                node_data['angles']['euler_yxz'] = np.concatenate(
-                    (node_data['angles']['euler_yxz'],
-                     merge_node_data['angles']['euler_yxz']))
-                node_data['angles']['euler_zxz'] = np.concatenate(
-                    (node_data['angles']['euler_zxz'],
-                     merge_node_data['angles']['euler_zxz']))
-        for edge1, edge2 in self.scene_graph.edges:
-            merge_edge_data = sequence.scene_graph[edge1][edge2]
-            edge_data = self.scene_graph[edge1][edge2]
-            edge_data['transformation'] = np.concatenate(
-                (edge_data['transformation'],
-                 merge_edge_data['transformation']))
-
-        return self
