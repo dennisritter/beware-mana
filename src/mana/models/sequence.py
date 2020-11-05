@@ -129,10 +129,10 @@ class Sequence:
             raise ValueError(
                 'Step_size parameter should be smaller that this sequences '
                 'length.')
-        if step_size == 0:
+        if step_size <= 0:
             raise ValueError(
                 'The formula int(subseq_size - subseq_size * overlap) should '
-                'not equal 0. Choose params that fulfill this condition.')
+                'not be <= 0. Choose params that fulfill this condition.')
 
         n_steps = math.floor(len(self) / step_size)
         seqs = [
@@ -170,6 +170,8 @@ class Sequence:
 
         Returns:
             np.ndarray: The images as an array.
+        NOTE: This method is not tested in unittests as it will probably change
+        significantly or be removed and is hard to test.
         """
         # Create Image container
         img = np.zeros((len(self.positions[0, :]), len(self.positions), 3),

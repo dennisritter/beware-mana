@@ -391,6 +391,253 @@ def test_transformation_batch(rotation, translation, expected):
 
 
 @pytest.mark.parametrize(
+    'rotation, translation, expected',
+    [
+        (
+            np.array([
+                [
+                    [1, 2, 3],
+                    [4, 5, 6],
+                    [7, 8, 9],
+                ],
+                [
+                    [11, 22, 33],
+                    [44, 55, 66],
+                    [77, 88, 99],
+                ],
+            ]),
+            None,
+            np.array([
+                [
+                    [1, 2, 3, 0],
+                    [4, 5, 6, 0],
+                    [7, 8, 9, 0],
+                    [0, 0, 0, 1],
+                ],
+                [
+                    [11, 22, 33, 0],
+                    [44, 55, 66, 0],
+                    [77, 88, 99, 0],
+                    [0, 0, 0, 1],
+                ],
+            ]),
+        ),
+    ],
+)
+def test_transformation_batch_no_translation(rotation, translation, expected):
+    """Test whether multiple translations are constructed correctly at once.
+    Without a given translation"""
+    result = t.transformation(rotation, translation)
+    np.testing.assert_array_equal(result, expected, verbose=True)
+
+
+@pytest.mark.parametrize(
+    'rotation, translation, expected',
+    [
+        (
+            np.array([
+                [
+                    [1, 2, 3],
+                    [4, 5, 6],
+                    [7, 8, 9],
+                ],
+                [
+                    [11, 22, 33],
+                    [44, 55, 66],
+                    [77, 88, 99],
+                ],
+            ]),
+            np.array([1, 2, 3]),
+            np.array([
+                [
+                    [1, 2, 3, 1],
+                    [4, 5, 6, 2],
+                    [7, 8, 9, 3],
+                    [0, 0, 0, 1],
+                ],
+                [
+                    [11, 22, 33, 1],
+                    [44, 55, 66, 2],
+                    [77, 88, 99, 3],
+                    [0, 0, 0, 1],
+                ],
+            ]),
+        ),
+    ],
+)
+def test_transformation_batch_one_translation_ndim1(rotation, translation,
+                                                    expected):
+    """Test whether multiple translations are constructed correctly at once.
+    With one translation ndim=1 given. The translation should be broadcasted for
+    all rotations."""
+    result = t.transformation(rotation, translation)
+    np.testing.assert_array_equal(result, expected, verbose=True)
+
+
+@pytest.mark.parametrize(
+    'rotation, translation, expected',
+    [
+        (
+            np.array([
+                [
+                    [1, 2, 3],
+                    [4, 5, 6],
+                    [7, 8, 9],
+                ],
+                [
+                    [11, 22, 33],
+                    [44, 55, 66],
+                    [77, 88, 99],
+                ],
+            ]),
+            np.array([[1, 2, 3]]),
+            np.array([
+                [
+                    [1, 2, 3, 1],
+                    [4, 5, 6, 2],
+                    [7, 8, 9, 3],
+                    [0, 0, 0, 1],
+                ],
+                [
+                    [11, 22, 33, 1],
+                    [44, 55, 66, 2],
+                    [77, 88, 99, 3],
+                    [0, 0, 0, 1],
+                ],
+            ]),
+        ),
+    ],
+)
+def test_transformation_batch_one_translation_ndim2(rotation, translation,
+                                                    expected):
+    """Test whether multiple translations are constructed correctly at once.
+    With one translation ndim=2 given. The translation should be broadcasted for
+    all rotations."""
+    result = t.transformation(rotation, translation)
+    np.testing.assert_array_equal(result, expected, verbose=True)
+
+
+@pytest.mark.parametrize(
+    'rotation, translation, expected',
+    [
+        (
+            np.array([
+                [
+                    [1, 2, 3],
+                    [4, 5, 6],
+                    [7, 8, 9],
+                ],
+            ]),
+            np.array([
+                [1, 2, 3],
+                [6, 15, 24],
+            ]),
+            np.array([
+                [
+                    [1, 2, 3, 1],
+                    [4, 5, 6, 2],
+                    [7, 8, 9, 3],
+                    [0, 0, 0, 1],
+                ],
+                [
+                    [1, 2, 3, 6],
+                    [4, 5, 6, 15],
+                    [7, 8, 9, 24],
+                    [0, 0, 0, 1],
+                ],
+            ]),
+        ),
+    ],
+)
+def test_transformation_batch_no_rotation(rotation, translation, expected):
+    """Test whether multiple translations are constructed correctly at once.
+    With one given rotation ndim=2. The rotation should be broadcasted for
+    all translations."""
+    result = t.transformation(rotation, translation)
+    np.testing.assert_array_equal(result, expected, verbose=True)
+
+
+@pytest.mark.parametrize(
+    'rotation, translation, expected',
+    [
+        (
+            np.array([
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+            ], ),
+            np.array([
+                [1, 2, 3],
+                [6, 15, 24],
+            ]),
+            np.array([
+                [
+                    [1, 2, 3, 1],
+                    [4, 5, 6, 2],
+                    [7, 8, 9, 3],
+                    [0, 0, 0, 1],
+                ],
+                [
+                    [1, 2, 3, 6],
+                    [4, 5, 6, 15],
+                    [7, 8, 9, 24],
+                    [0, 0, 0, 1],
+                ],
+            ]),
+        ),
+    ],
+)
+def test_transformation_batch_one_rotation_ndim2(rotation, translation,
+                                                 expected):
+    """Test whether multiple translations are constructed correctly at once.
+    With one given rotation ndim=2. The rotation should be broadcasted for
+    all translations."""
+    result = t.transformation(rotation, translation)
+    np.testing.assert_array_equal(result, expected, verbose=True)
+
+
+@pytest.mark.parametrize(
+    'rotation, translation, expected',
+    [
+        (
+            np.array([
+                [
+                    [1, 2, 3],
+                    [4, 5, 6],
+                    [7, 8, 9],
+                ],
+            ]),
+            np.array([
+                [1, 2, 3],
+                [6, 15, 24],
+            ]),
+            np.array([
+                [
+                    [1, 2, 3, 1],
+                    [4, 5, 6, 2],
+                    [7, 8, 9, 3],
+                    [0, 0, 0, 1],
+                ],
+                [
+                    [1, 2, 3, 6],
+                    [4, 5, 6, 15],
+                    [7, 8, 9, 24],
+                    [0, 0, 0, 1],
+                ],
+            ]),
+        ),
+    ],
+)
+def test_transformation_batch_one_rotation_ndim3(rotation, translation,
+                                                 expected):
+    """Test whether multiple translations are constructed correctly at once.
+    With one given rotation ndim=3. The rotation should be broadcasted for
+    all translations."""
+    result = t.transformation(rotation, translation)
+    np.testing.assert_array_equal(result, expected, verbose=True)
+
+
+@pytest.mark.parametrize(
     'v1, v2, expected',
     [
         (
