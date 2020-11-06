@@ -123,25 +123,25 @@ def pose_orientation(array: np.ndarray,
 
     if v_from.ndim > 2:
         raise ValueError('v_from must be a 1 or 2 dimensional numpy array')
-    if v_from.shape[0] =! 3 OR v_from.shape =! (n_frames, 3):
+    if v_from.shape[0] not in [3, n_frames] and v_from.shape[-1] != 3:
         raise ValueError('v_from must contain one vector or number '
                          'of frames times two vectors!')
 
     if v_to.ndim > 2:
         raise ValueError('v_to must be a 1 or 2 dimensional numpy array')
-    if v_to.shape[0] not in [3, n_frames]:
+    if v_to.shape[0] not in [3, n_frames] and v_to.shape[-1] != 3:
         raise ValueError('v_to must contain only one vector '
                          '(shape = 3) or as many vectors as frames.')
 
     if axis.ndim > 2:
         raise ValueError('axis must be a 1 or 2 dimensional numpy array')
-    if axis.shape[0] not in [3, n_frames]:
+    if axis.shape[0] not in [3, n_frames] and axis.shape[-1] != 3:
         raise ValueError('axis must contain only one vector '
                          '(shape = 3) or as many vectors as frames.')
 
     if origin.ndim > 2:
         raise ValueError('Origin must be a 1 or 2 dimensional numpy array')
-    if origin.shape[0] not in [3, n_frames]:
+    if origin.shape[0] not in [3, n_frames] and origin.shape[-1] != 3:
         raise ValueError('Origin must contain only one vector '
                          '(shape = 3) or as many vectors as frames.')
 
