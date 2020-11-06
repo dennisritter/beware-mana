@@ -6,7 +6,7 @@ import mana.utils.math.normalizations as n
 
 
 @pytest.mark.parametrize(
-    'var, mean, expected',
+    'array, mean, expected',
     [
         # Means = [2.5, 3.5, 4.5]
         (np.array([
@@ -88,16 +88,15 @@ import mana.utils.math.normalizations as n
          ])),
     ],
 )
-def test_pose_mean(var, mean, expected):
+def test_pose_mean(array, mean, expected):
     """Tests if the (combined) mean for all frames is computed and subtracted
     accordingly."""
     # using pytest approx to avoid floating point arithmetic issues
-    assert pytest.approx(n.pose_mean(var, mean)) == expected
-    # np.testing.assert_array_almost_equal(n.pose_mean2(var, mean) == expected)
+    assert pytest.approx(n.pose_mean(array, mean)) == expected
 
 
 @pytest.mark.parametrize(
-    'var, pos, expected',
+    'array, pos, expected',
     [
         (np.array([
             [[2, 3, 4], [5, 1, 2], [3, 3, 3], [1, 0, 1]],
@@ -152,109 +151,90 @@ def test_pose_mean(var, mean, expected):
          ])),
     ],
 )
-def test_pose_position(var, pos, expected):
+def test_pose_position(array, pos, expected):
     """Tests if the positions for all frames will be translated by the given
     vector or array of vectors."""
-    assert (n.pose_position(var, pos) == expected).all()
+    assert (n.pose_position(array, pos) == expected).all()
 
 
 @pytest.mark.parametrize(
-    'var, rotation_vectors, plane_normals, origins, expected',
+    'array, v_from, v_to, axis, origin, expected',
     [
         (
-            np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]]]),
-            np.array([-2, 2, 0]),
-            np.array([0, 1, 0]),
-            np.array([0, 0, 0]),
-            np.array([
-                [-0.07071, 3.5355, 2],
-                [2.1213, 3.5355, 2],
-                [0, 2.8284, 3],
-            ]),
-        ),  # origin rotation
+            np.array([[[3, 2, 2], [3, 1, 3]]]),
+            np.array([0, 1, -1]),  # difference from v1 to v2
+            np.array([1, 0, 0]),  # rotate towards x axis
+            np.array([0, 0, 1]),  # rotate around z axis
+            np.array([0, 0, 0]),  # origin
+            np.array([[[-2, 3, 2], [-1, 3, 3]]]),  # simple 90 degree rotation
+        ),  # simple rotation
         (
-            np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]]]),
-            np.array([-2, 2, 0]),
-            np.array([0, 1, 0]),
-            np.array([2, 3, 2]),
-            np.array([[2, 3, 2], [4.8284, 3, 2], [2.7071, 2.8929, 3]]),
+            np.array([[[3, 2, 2], [3, 1, 3]]]),
+            np.array([0, 1, -1]),
+            np.array([1, 0, 0]),
+            np.array([0, 0, 1]),
+            np.array([3, 2, 2]),  # origin equals v1
+            np.array([[[3, 2, 2], [4, 2, 3]]]),  # 90 degree rotation around v1
         ),  # inplace rotation -> different origin
         (
-            np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]]]),
-            np.array([-2, 2, 0]),
+            np.array([[[4, 1, 2], [2, 3, 2]]]),
+            np.array([2, -2, 0]),
+            np.array([1, 0, 0]),
+            np.array([0, 1, 0]),  # rotate around y
+            np.array([0, 0, 0]),
+            np.array([[[-4, 1, -2], [-2, 3, -2]]]),  # v1 - v2 is parallel to y
+        ),  # different rotation axis
+        (
+            np.array([[[3, 2, 2], [3, 1, 3]], [[3, 2, 2], [3, 1, 3]]]),
+            np.array([0, 1, -1]),
+            np.array([1, 0, 0]),
             np.array([0, 0, 1]),
             np.array([0, 0, 0]),
-            np.array([[2, 3, 2], [4, 1, 2], [2, 2, 3]]),
-        ),  # xy plane -> different normal vector
+            np.array([[[-2, 3, 2], [-1, 3, 3]], [[-2, 3, 2], [-1, 3, 3]]]),
+        ),  # 2 frames (1 v_from, 1 v_to) -> apply first rotation to all
         (
-            np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
-                      [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
-            np.array([-2, 2, 0]),
-            np.array([0, 1, 0]),
+            np.array([[[3, 2, 2], [3, 1, 3]], [[3, 2, 2], [3, 1, 3]]]),
+            np.array([[0, 1, -1], [0, 1, -1]]),
+            np.array([[1, 0, 0], [1, 0, 0]]),
+            np.array([0, 0, 1]),
             np.array([0, 0, 0]),
-            np.array([[
-                [-0.07071, 3.5355, 2],
-                [2.1213, 3.5355, 2],
-                [0, 2.8284, 3],
-            ], [
-                [0.7071, 3.5355, 2],
-                [1.4142, 2.8284, 3],
-                [-1.4142, 2.8284, 2],
-            ]]),
-        ),  # 2 frames -> apply first rotation to all
+            np.array([[[-2, 3, 2], [-1, 3, 3]], [[-2, 3, 2], [-1, 3, 3]]]),
+        ),  # 2 frames (2 v_from, 2 v_to) -> compute and apply rotation to each
         (
-            np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
-                      [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
-            np.array([[-2, 2, 0], [0, 1, -1]]),
-            np.array([0, 1, 0]),
+            np.array([[[3, 2, 2], [3, 1, 3]], [[3, 2, 2], [3, 1, 3]]]),
+            np.array([[0, 1, -1], [0, 1, -1]]),
+            np.array([1, 0, 0]),
+            np.array([0, 0, 1]),
             np.array([0, 0, 0]),
-            np.array([[
-                [-0.07071, 3.5355, 2],
-                [2.1213, 3.5355, 2],
-                [0, 2.8284, 3],
-            ], [
-                [0.7071, 3.5355, 2],
-                [1.4142, 2.8284, 3],
-                [-1.4142, 2.8284, 2],
-            ]]),
-        ),  # 2 frames 2 rotation -> compute and apply rotation to each
+            np.array([[[-2, 3, 2], [-1, 3, 3]], [[-2, 3, 2], [-1, 3, 3]]]),
+        ),  # 2 frames (2 v_from, 1 v_to) -> broadcast 
         (
-            np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
-                      [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
-            np.array([-2, 2, 0]),
-            np.array([[0, 1, 0], [0, 1, 0]]),
+            np.array([[[3, 2, 2], [3, 1, 3]], [[3, 2, 2], [3, 1, 3]]]),
+            np.array([0, 1, -1]),
+            np.array([[1, 0, 0], [1, 0, 0]]),
+            np.array([0, 0, 1]),
             np.array([0, 0, 0]),
-            np.array([[
-                [-0.07071, 3.5355, 2],
-                [2.1213, 3.5355, 2],
-                [0, 2.8284, 3],
-            ], [
-                [0.7071, 3.5355, 2],
-                [1.4142, 2.8284, 3],
-                [-1.4142, 2.8284, 2],
-            ]]),
-        ),  # 2 frames 2 orthogonal
+            np.array([[[-2, 3, 2], [-1, 3, 3]], [[-2, 3, 2], [-1, 3, 3]]]),
+        ),  # 2 frames (1 v_from, 2 v_to) -> broadcast 
         (
-            np.array([[[2, 3, 2], [4, 1, 2], [2, 2, 3]],
-                      [[3, 2, 2], [3, 1, 3], [1, 3, 2]]]),
-            np.array([-2, 2, 0]),
-            np.array([0, 1, 0]),
-            np.array([[0, 0, 0], [0, 0, 0]]),
-            np.array([[
-                [-0.07071, 3.5355, 2],
-                [2.1213, 3.5355, 2],
-                [0, 2.8284, 3],
-            ], [
-                [0.7071, 3.5355, 2],
-                [1.4142, 2.8284, 3],
-                [-1.4142, 2.8284, 2],
-            ]]),
+            np.array([[[3, 2, 2], [3, 1, 3]], [[4, 1, 2], [2, 3, 2]]]),
+            np.array([[0, 1, -1], [2, -2, 0]]),
+            np.array([1, 0, 0]),
+            np.array([[0, 0, 1], [0, 1, 0]]),
+            np.array([0, 0, 0]),
+            np.array([[[-2, 3, 2], [-1, 3, 3]], [[-4, 1, -2], [-2, 3, -2]]]),
+        ),  # 2 frames 2 axis
+        (
+            np.array([[[3, 2, 2], [3, 1, 3]], [[3, 2, 2], [3, 1, 3]]]),
+            np.array([0, 1, -1]),
+            np.array([1, 0, 0]),
+            np.array([0, 0, 1]),
+            np.array([[0, 0, 0], [3, 2, 2]]),
+            np.array([[[-2, 3, 2], [-1, 3, 3]], [[3, 2, 2], [4, 2, 3]]]),
         ),  # 2 frames 2 origin
     ])
-def test_pose_orientation(var, rotation_vectors, plane_normals, origins,
-                          expected):
+def test_pose_orientation(array, v_from, v_to, axis, origin, expected):
     """Tests if the positions will be rotated toward the plane of the given
     plane normal."""
-    assert pytest.approx(
-        n.pose_orientation(var, rotation_vectors, plane_normals, origins) ==
-        expected)
+    assert pytest.approx(n.pose_orientation(array, v_from, v_to, axis,
+                                            origin)) == expected
