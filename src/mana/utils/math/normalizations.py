@@ -95,7 +95,7 @@ def pose_orientation(array: np.ndarray,
             with size = number of input frames. Defaults to ([0, 0, 0]).
 
     Note: You can supply one or number of frames (array) distinct vectors for
-        each parameter. If one vector is suppled it will be broadcasted. In
+        each parameter. If one vector is supplied it will be broadcasted. In
         case of number of frames vectors, those got applied to each frames
         seperately.
 
