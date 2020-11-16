@@ -1,4 +1,4 @@
-"""WIP: Contains the BewARe sequence model including the scenegraph and angle
+"""Contains the BewARe sequence model including the scenegraph and angle
 computation."""
 import copy
 from typing import Union
@@ -72,8 +72,6 @@ class SceneGraphSequence(Sequence):
         """
         super(SceneGraphSequence, self).__init__(positions, name, desc)
 
-        self.positions = self._get_pelvis_cs_positions(self.positions)
-
         # Number, order and label of tracked body parts
         self.body_parts = {
             "head": 0,
@@ -93,6 +91,8 @@ class SceneGraphSequence(Sequence):
             "ankle_l": 14,
             "ankle_r": 15,
         } if body_parts is None else body_parts
+
+        self.positions = self._get_pelvis_cs_positions(self.positions)
 
         if scene_graph is not None:
             self.scene_graph = scene_graph
@@ -161,14 +161,9 @@ class SceneGraphSequence(Sequence):
                     scene_graph.nodes[node]['angles'][
                         angle_list] = scene_graph.nodes[node]['angles'][
                             angle_list][start:stop:step]
-        for edge1, edge2 in scene_graph.edges:
-            for data_list in scene_graph[edge1][edge2].keys():
-                if data_list:
-                    scene_graph[edge1][edge2][data_list] = scene_graph[edge1][
-                        edge2][data_list][start:stop:step]
 
         return SceneGraphSequence(self.positions[start:stop:step], scene_graph,
-                                  self.name, self.desc)
+                                  self.body_parts, self.name, self.desc)
 
     def append(self, sequence: 'SceneGraphSequence') -> 'SceneGraphSequence':
         """Returns the merged two sequences.
@@ -180,7 +175,8 @@ class SceneGraphSequence(Sequence):
                 SceneGraphSequence: The inplace merged sequences.
 
             Raises:
-                ValueError: if shapes of the positions property don't fit together.
+                ValueError: if shapes of the positions property don't fit
+                    together.
             """
         super(SceneGraphSequence, self).append(sequence)
 
@@ -203,26 +199,6 @@ class SceneGraphSequence(Sequence):
             node_data['coordinate_system']['z_axis'] = np.concatenate(
                 (node_data['coordinate_system']['z_axis'],
                  merge_node_data['coordinate_system']['z_axis']))
-            # Concatenate angle data
-            if 'rotation_matrix' in node_data['angles'].keys():
-                node_data['angles']['rotation_matrix'] = np.concatenate(
-                    (node_data['angles']['rotation_matrix'],
-                     merge_node_data['angles']['rotation_matrix']))
-                node_data['angles']['euler_xyz'] = np.concatenate(
-                    (node_data['angles']['euler_xyz'],
-                     merge_node_data['angles']['euler_xyz']))
-                node_data['angles']['euler_yxz'] = np.concatenate(
-                    (node_data['angles']['euler_yxz'],
-                     merge_node_data['angles']['euler_yxz']))
-                node_data['angles']['euler_zxz'] = np.concatenate(
-                    (node_data['angles']['euler_zxz'],
-                     merge_node_data['angles']['euler_zxz']))
-        for edge1, edge2 in self.scene_graph.edges:
-            merge_edge_data = sequence.scene_graph[edge1][edge2]
-            edge_data = self.scene_graph[edge1][edge2]
-            edge_data['transformation'] = np.concatenate(
-                (edge_data['transformation'],
-                 merge_edge_data['transformation']))
 
         return self
 
@@ -283,10 +259,6 @@ class SceneGraphSequence(Sequence):
         for node in scene_graph.nodes:
             scene_graph.nodes[node]['coordinate_system'] = {}
             scene_graph.nodes[node]['angles'] = {}
-
-        # Predefine edge data lists to store data for each frame of the sequence
-        for node1, node2 in scene_graph.edges:
-            scene_graph[node1][node2]['transformation'] = []
 
         # Start recursive function with root node in our directed scene_graph
         self._calculate_transformations(scene_graph, root_node, root_node,
@@ -397,14 +369,6 @@ class SceneGraphSequence(Sequence):
             euler_angles_zxz = Rotation.from_dcm(
                 rot_parent_to_node[:, :3, :3]).as_euler('ZXZ', degrees=True)
 
-            # Store transformation from parent to current node in
-            # corresponding edge
-            scene_graph[parent_node][node]['transformation'] = mt.bmm(
-                translation_mat4x4, rot_parent_to_node)
-
-            # Store Rotation Matrix
-            scene_graph.nodes[node]['angles']['rotation_matrix'] = np.array(
-                rot_parent_to_node)
             # Store Euler Sequences
             scene_graph.nodes[node]['angles']['euler_xyz'] = euler_angles_xyz
             scene_graph.nodes[node]['angles']['euler_yxz'] = euler_angles_yxz
