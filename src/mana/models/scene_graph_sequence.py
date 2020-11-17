@@ -135,6 +135,7 @@ class SceneGraphSequence(Sequence):
             TypeError: if item is not of type int or slice.
         """
 
+        # TODO: super?
         if isinstance(item, slice):
             if item.start is None and item.stop is None and item.step is None:
                 # Return a Deepcopy to improve copy performance (sequence[:])
@@ -147,21 +148,17 @@ class SceneGraphSequence(Sequence):
         else:
             raise TypeError(f"Invalid argument type: {type(item)}")
 
-        # TODO: refactor (origin & axis were removed)
         # Slice All data lists stored in the scene_graphs nodes and edges
         scene_graph = copy.deepcopy(self.scene_graph)
         for node in scene_graph.nodes:
-            for vector_list in scene_graph.nodes[node][
-                    'coordinate_system'].keys():
-                if vector_list:
-                    scene_graph.nodes[node]['coordinate_system'][
-                        vector_list] = scene_graph.nodes[node][
-                            'coordinate_system'][vector_list][start:stop:step]
-            for angle_list in scene_graph.nodes[node]['angles'].keys():
-                if angle_list:
-                    scene_graph.nodes[node]['angles'][
-                        angle_list] = scene_graph.nodes[node]['angles'][
-                            angle_list][start:stop:step]
+            if scene_graph.nodes[node]['coordinate_system'] is not None:
+                scene_graph.nodes[node][
+                    'coordinate_system'] = scene_graph.nodes[node][
+                        'coordinate_system'][start:stop:step]
+            for angle_type in scene_graph.nodes[node]['angles'].keys():
+                scene_graph.nodes[node]['angles'][
+                    angle_type] = scene_graph.nodes[node]['angles'][angle_type][
+                        start:stop:step]
 
         return SceneGraphSequence(self.positions[start:stop:step], scene_graph,
                                   self.body_parts, self.name, self.desc)
@@ -169,38 +166,30 @@ class SceneGraphSequence(Sequence):
     def append(self, sequence: 'SceneGraphSequence') -> 'SceneGraphSequence':
         """Returns the merged two sequences.
 
-            Args:
-                sequence (SceneGraphSequence): The Sequence to merge (append).
+        Args:
+            sequence (SceneGraphSequence): The Sequence to merge (append).
 
-            Returns:
-                SceneGraphSequence: The inplace merged sequences.
+        Returns:
+            SceneGraphSequence: The inplace merged sequences.
 
-            Raises:
-                ValueError: if shapes of the positions property don't fit
-                    together.
-            """
+        Raises:
+            ValueError: if shapes of the positions property don't fit
+                together.
+        """
         super(SceneGraphSequence, self).append(sequence)
 
         # Copy the given sequence to not change it implicitly
         sequence = sequence[:]
 
-        # TODO: refactor (remove origin + axis)
+        # TODO: we only add values where the original sequence has values.
+        #       If the addes sequence has more data those will be ignored.
         for node in sequence.scene_graph.nodes:
-            merge_node_data = sequence.scene_graph.nodes[node]
-            node_data = self.scene_graph.nodes[node]
+            append_node_data = sequence.scene_graph.nodes[node]
+            self_node_data = self.scene_graph.nodes[node]
             # Concatenate Coordinate System data
-            node_data['coordinate_system']['origin'] = np.concatenate(
-                (node_data['coordinate_system']['origin'],
-                 merge_node_data['coordinate_system']['origin']))
-            node_data['coordinate_system']['x_axis'] = np.concatenate(
-                (node_data['coordinate_system']['x_axis'],
-                 merge_node_data['coordinate_system']['x_axis']))
-            node_data['coordinate_system']['y_axis'] = np.concatenate(
-                (node_data['coordinate_system']['y_axis'],
-                 merge_node_data['coordinate_system']['y_axis']))
-            node_data['coordinate_system']['z_axis'] = np.concatenate(
-                (node_data['coordinate_system']['z_axis'],
-                 merge_node_data['coordinate_system']['z_axis']))
+            self_node_data['coordinate_system'] = np.concatenate(
+                (self_node_data['coordinate_system'],
+                 append_node_data['coordinate_system']))
 
         return self
 
