@@ -6,9 +6,10 @@ from mana.models.scene_graph_sequence import SceneGraphSequence
 
 
 @pytest.fixture()
-def example_positions():
-    """Returns a numpy array of positions as they are expected by the SceneGraphSequence
-    constructor. (3D = [frame, body part, xyz])"""
+def ground_truth():
+    """Returns a numpy array of positions as they are expected by the
+    SceneGraphSequence constructor. (3D = [frame, body part, xyz])
+    """
     json_data = {
         "name":
         "squat",
@@ -93,59 +94,41 @@ def example_positions():
                 -685.769836, 2380.01318, 130.847763, -706.2588, 2232.61768,
                 48.11064, -695.4994, 2354.87964
             ]
-        ]
+        ],
     }
     positions = np.array(json_data["positions"])
 
     # reshape positions to 3d array
-    positions = np.reshape(
+    json_data['positions'] = np.reshape(
         positions, (np.shape(positions)[0], int(np.shape(positions)[1] / 3), 3))
-    return positions
+
+    return json_data
 
 
-# def test_instance(example_positions):  # pylint: disable=redefined-outer-name
-#     """Test whether a SceneGraphSequence object is instantiated."""
-#     seq1 = SceneGraphSequence(example_positions, name='test_name', desc='test_desc')
-#     assert isinstance(seq1, SceneGraphSequence)
-#     seq2 = SceneGraphSequence(example_positions)
-#     assert isinstance(seq2, SceneGraphSequence)
-
-# def test_properties(example_positions):  # pylint: disable=redefined-outer-name
-#     """Test whether a loaders load function returns a SceneGraphSequence object."""
-#     seq = SceneGraphSequence(example_positions, name='test_name', desc='test_desc')
-#     np.testing.assert_array_equal(seq.positions, example_positions)
-#     assert seq.name == 'test_name'
-#     assert seq.desc == 'test_desc'
-
-# def test_len(example_positions):  # pylint: disable=redefined-outer-name
-#     """Test whether the len function returns the correct length."""
-#     seq = SceneGraphSequence(example_positions)
-#     assert len(seq) == 2
-
-# def test_slices(example_positions):  # pylint: disable=redefined-outer-name
-#     """Test whether slicing returns correct slices."""
-#     seq = SceneGraphSequence(example_positions)
-#     np.testing.assert_array_equal(seq[:].positions, example_positions)
-#     # Remove empty dimension with squeeze to match shapes
-#     np.testing.assert_array_equal(seq[0].positions.squeeze(),
-#                                   example_positions[0])
-#     np.testing.assert_array_equal(seq[1].positions.squeeze(),
-#                                   example_positions[1])
+def test_instance(ground_truth):
+    """Test whether a SceneGraphSequence object is instantiated."""
+    seq = SceneGraphSequence(ground_truth['positions'])
+    assert isinstance(seq, SceneGraphSequence)
 
 
-def test_append(example_positions):  # pylint: disable=redefined-outer-name
+def test_len(ground_truth):
     """Test whether the len function returns the correct length."""
-    seq1 = SceneGraphSequence(example_positions)
-    seq2 = SceneGraphSequence(example_positions)
-    seq_double = seq1.append(seq2)
+    seq = SceneGraphSequence(ground_truth['positions'])
+    assert len(seq) == 2
+
+
+def test_append(ground_truth):
+    """Test whether the append function returns the correct positions."""
+    seq1 = SceneGraphSequence(ground_truth['positions'])
+    seq2 = SceneGraphSequence(ground_truth['positions'])
+    seq1.append(seq2)
     np.testing.assert_array_equal(
-        seq_double.positions,
-        np.concatenate((example_positions, example_positions)))
+        seq1.positions, np.concatenate((seq2.positions, seq2.positions)))
 
 
-def test_split(example_positions):  # pylint: disable=redefined-outer-name
+def test_split(ground_truth):
     """Test whether the split function splits the SceneGraphSequence in correct chunks."""
-    seq = SceneGraphSequence(example_positions)
+    seq = SceneGraphSequence(ground_truth['positions'])
     split1 = seq.split(overlap=0.0, subseq_size=1)
     assert len(split1) == 2
     # Check if ValueError for overlap >= 1
