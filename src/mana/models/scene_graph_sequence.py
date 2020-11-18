@@ -1,7 +1,15 @@
 """Contains the BewARe sequence model including the scenegraph and angle
-computation."""
+computation.
+
+
+#######ATTENTION#######
+This class is not tested properly and was implemented to match a specific
+use-case. Further development/ ground up refactoring is possibly needed.
+#######################
+"""
 import copy
 from typing import Union
+import warnings
 
 import networkx as nx
 import numpy as np
@@ -70,6 +78,10 @@ class SceneGraphSequence(Sequence):
             name (str): The name of this sequence.
             desc (str): A description of this sequence.
         """
+        warnings.warn(
+            f'The {SceneGraphSequence} module is not ready for production! '
+            'Please verify the implementation is suited to your use-case.')
+
         super(SceneGraphSequence, self).__init__(positions, name, desc)
 
         # Number, order and label of tracked body parts
@@ -134,8 +146,6 @@ class SceneGraphSequence(Sequence):
             NotImplementedError: if index is given as tuple.
             TypeError: if item is not of type int or slice.
         """
-
-        # TODO: super?
         if isinstance(item, slice):
             if item.start is None and item.stop is None and item.step is None:
                 # Return a Deepcopy to improve copy performance (sequence[:])
@@ -196,6 +206,9 @@ class SceneGraphSequence(Sequence):
     def _get_pelvis_cs_positions(self, positions: np.ndarray) -> np.ndarray:
         """Transforms all points in positions parameter so they are relative to
         the pelvis. X-Axis = right, Y-Axis = front, Z-Axis = up.
+
+        # TODO: This methods should be extracted to outer class scope.
+                Using fixed strings for center position is not generic!
 
         Args:
             positions (np.ndarray): All positions (joints) with shape ==
@@ -315,14 +328,6 @@ class SceneGraphSequence(Sequence):
             # joint rotation..
             # ..Determine 4x4 homogenious rotation matrix to derive joint
             # angles later
-            # TODO: ?
-            #! orthogonal vector computation is different in old transform &
-            #       mana.transform
-            # TODO: z_axis (& *-1)
-            # rot_parent_to_node = mt.rotation_from_vectors(
-            #     parent_cs['z_axis'] * -1, node_to_child_node)
-
-            # get z axis from transformation matrix without homogenous part
             rot_parent_to_node = mt.rotation_from_vectors(
                 parent_cs[:, :3, 2] * -1, node_to_child_node)
 
