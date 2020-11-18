@@ -1,10 +1,19 @@
 """ This module contains functions to compute medical meaningful angles,
-convert different rotation and angle representations from and to each other."""
+convert different rotation and angle representations from and to each other.
+
+
+#######ATTENTION#######
+This class is not tested properly and was implemented to match a specific
+use-case. Further development/ ground up refactoring is possibly needed.
+#######################
+"""
 from enum import Enum
+import warnings
 
 import numpy as np
 
 from mana.models.scene_graph_sequence import SceneGraphSequence
+from mana.solver.a_solver import ASolver
 
 
 class AngleTypes(Enum):
@@ -23,7 +32,7 @@ def _get_joint_start_dist(joint_positions: np.ndarray) -> np.ndarray:
             joint node.
 
     Returns:
-        np.ndarray: TODO
+        np.ndarray: The sum of all frames to the starting x-position.
     """
     return np.sum(
         np.absolute(np.absolute(joint_positions) - abs(joint_positions[0])))
@@ -176,14 +185,22 @@ def _medical_from_euler(euler_sequence: str, euler_angles: np.ndarray,
     return med_angles
 
 
-class MedicalJointAngles():
+class MedicalJointAngles(ASolver):
     """Computes medical meaningful joint angles."""
     def __init__(self, sequence: SceneGraphSequence) -> None:
         """
         Args:
             sequence (SceneGraphSequence): The SceneGraphSequence to analyse.
         """
-        self.sequence = sequence
+        warnings.warn(
+            f'The {MedicalJointAngles} module is not ready for production! '
+            'It is neither thoroughly tested nor verified.'
+            'Please verify that the implementation is suited to your use-case.')
+
+        if not isinstance(sequence, SceneGraphSequence):
+            raise ValueError('The MedicalJointAngle solver only supports '
+                             'sequences of type SceneGraphSequence')
+        super(MedicalJointAngles, self).__init__(sequence)
 
     def solve(self) -> np.ndarray:
         """Returns a 3-D list of joint angles for all frames, body parts and
