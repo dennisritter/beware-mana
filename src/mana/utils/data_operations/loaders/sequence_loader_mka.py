@@ -5,13 +5,14 @@ from typing import Type
 import numpy as np
 
 from mana.models.sequence import Sequence
+from mana.models.scene_graph_sequence import SceneGraphSequence
 from mana.models.sequence_transforms import SequenceTransforms
 from mana.utils.data_operations.loaders.a_sequence_loader import ASequenceLoader
 
 
 class SequenceLoaderMKA(ASequenceLoader):
     """A loader for Mocap Kinect Azure motion sequences."""
-    ALLOWED_SEQUENCE_CLASSES = [Sequence]
+    ALLOWED_SEQUENCE_CLASSES = [Sequence, SceneGraphSequence]
 
     def __init__(self,
                  transforms: SequenceTransforms = None,
@@ -65,6 +66,8 @@ class SequenceLoaderMKA(ASequenceLoader):
             (np.shape(positions)[0], int(np.shape(positions)[1] / 3), 3))
 
         positions = super().transform(positions)
-        sequence = self.sequence_class(positions, name, desc)
+        sequence = self.sequence_class(positions=positions,
+                                       name=name,
+                                       desc=desc)
 
         return sequence

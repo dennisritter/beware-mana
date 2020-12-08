@@ -22,6 +22,7 @@ setuptools.setup(
         'kaleido',
         'opencv-python',
         'transforms3d',
+        'networkx',
         # 'matplotlib',
     ],
     classifiers=[
