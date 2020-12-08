@@ -105,19 +105,19 @@ def ground_truth():
     return json_data
 
 
-def test_instance(ground_truth):
+def test_instance(ground_truth):  # pylint: disable=redefined-outer-name
     """Test whether a SceneGraphSequence object is instantiated."""
     seq = SceneGraphSequence(ground_truth['positions'])
     assert isinstance(seq, SceneGraphSequence)
 
 
-def test_len(ground_truth):
+def test_len(ground_truth):  # pylint: disable=redefined-outer-name
     """Test whether the len function returns the correct length."""
     seq = SceneGraphSequence(ground_truth['positions'])
     assert len(seq) == 2
 
 
-def test_append(ground_truth):
+def test_append(ground_truth):  # pylint: disable=redefined-outer-name
     """Test whether the append function returns the correct positions."""
     seq1 = SceneGraphSequence(ground_truth['positions'])
     seq2 = SceneGraphSequence(ground_truth['positions'])
@@ -126,8 +126,9 @@ def test_append(ground_truth):
         seq1.positions, np.concatenate((seq2.positions, seq2.positions)))
 
 
-def test_split(ground_truth):
-    """Test whether the split function splits the SceneGraphSequence in correct chunks."""
+def test_split(ground_truth):  # pylint: disable=redefined-outer-name
+    """Test whether the split function splits the SceneGraphSequence in correct
+    chunks."""
     seq = SceneGraphSequence(ground_truth['positions'])
     split1 = seq.split(overlap=0.0, subseq_size=1)
     assert len(split1) == 2
